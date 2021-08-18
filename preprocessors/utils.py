@@ -4,10 +4,18 @@ def listDir(path, directoriesOnly=False, filesOnly=False):
     if directoriesOnly and filesOnly:
         raise Exception(
             "Cannot have both directoriesOnly and filesOnly set to True")
-
+    items = []
     if directoriesOnly:
-        return [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
+        items= [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
     elif filesOnly:
-        return [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+        items= [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
     else:
-        return [f for f in os.listdir(path)]
+        items= [f for f in os.listdir(path)]
+
+    filteredItems = []
+    for item in items:
+        if item[0] != '.':
+            filteredItems.append(item)
+        
+    filteredItems.sort()
+    return filteredItems

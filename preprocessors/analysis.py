@@ -3,39 +3,36 @@ import librosa.display
 import matplotlib.pyplot as plt
 from pydub import AudioSegment
 import numpy as np
+import os
 
 import argparse
 from time import time
-from IPython.display import Audio
 
 from utils import listDir
 
-import sox
 
-
-
-
-%load_ext autoreload
-%autoreload 2
-%reload_ext autoreload
-
-
-
-
-
-
-
-CQT = "/home/pasinducw/Downloads/Research-Datasets/covers80_cqt/"
-WAV = "/home/pasinducw/Downloads/Research-Datasets/covers80/"
+DATASET = "basic"
+CQT = "/Users/pasinduwijesena/Documents/university/research/experiments/data/{}_cqt_log/".format(DATASET)
+WAV = "/Users/pasinduwijesena/Documents/university/research/experiments/data/{}".format(DATASET)
 songsList = listDir(CQT, directoriesOnly=True)
 songsList
 
 
 
-
-
-progress =0
+startAt = 2 # 29
+endAt = 3
+progress = 0
 for song in songsList:
+    print("Song: ", song)
+    if startAt > progress:
+        progress = progress + 1
+        print("\tSKIP")
+        continue
+    
+    if endAt <= progress:
+        print("STOP")
+        break
+
     performances = listDir(os.path.join(CQT, song), filesOnly=True)
     for performanceCQT in performances:
         performance = '.'.join(performanceCQT.split('.')[:-1])
@@ -46,12 +43,13 @@ for song in songsList:
 
         print(performance)
         print("Waveform: {}, at {}Hz. {}s".format(waveform.shape, sr, waveform.shape[0]/sr))
-        Audio(waveform, rate=sr)
+
+        plt.figure()
         librosa.display.specshow(cqt, x_axis="time")
-        plt.show()
-
+        plt.title(performance)
         print("\n\n")
-        break
 
+    plt.show()
     progress = progress + 1
     print("{}/{}".format(progress, len(songsList)))
+    break

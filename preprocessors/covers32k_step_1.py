@@ -7,19 +7,26 @@ from utils import listDir
 # Apply pitch shift and time stretch transformations
 # Save into the transformed directory
 
-MASTER = "../data/coversongs/covers32k"
-TRANSFORMED = "/home/pasinducw/Downloads/Research-Datasets/covers80"
+DATASET = "basic"
+MASTER = "/Users/pasinduwijesena/Documents/university/research/experiments/data/{}_raw".format(DATASET)
+TRANSFORMED = "/Users/pasinduwijesena/Documents/university/research/experiments/data/{}".format(DATASET)
 
 songsList = listDir(MASTER, directoriesOnly=True)
-startAt = 0
+startAt = 1 # 29
+endAt = 2
 progress = 0
 for song in songsList:
+    print("Song: ", song)
     if startAt > progress:
         progress = progress + 1
-        continue
-    performances = listDir(os.path.join(MASTER, song), filesOnly=True)
-    print("Performances", performances)
+        print("\tSKIP")
+        continue    
 
+    if endAt <= progress:
+        print("STOP")
+        break
+
+    performances = listDir(os.path.join(MASTER, song), filesOnly=True)
     for performance in performances:
         sourceDirectory = os.path.join(MASTER, song)
         targetDirectory = os.path.join(TRANSFORMED, song)
