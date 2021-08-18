@@ -3,6 +3,10 @@ import AudioTransform as at
 import os
 from utils import listDir
 
+# Read the mp3 files, convert them to wav format
+# Apply pitch shift and time stretch transformations
+# Save into the transformed directory
+
 MASTER = "../data/coversongs/covers32k"
 TRANSFORMED = "/home/pasinducw/Downloads/Research-Datasets/covers80"
 

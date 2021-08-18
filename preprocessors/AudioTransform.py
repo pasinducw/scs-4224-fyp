@@ -1,5 +1,6 @@
 import librosa as la
 import soundfile as sf
+import numpy as np
 from pydub import AudioSegment
 import os
 
@@ -84,3 +85,34 @@ class TimeStretch:
             sf.write(os.path.join(targetDirectory, name), specs[i], self.sr)
             names.append(name)
         return names
+
+
+class CQTransform:
+
+    def __init__(self, sr: int = STANDARD_SAMPLE_RATE, nBin: int = 96, hopLength: int = 96, binsPerOctave: int = 12, downSample: int = 3, groupSize: int = 1):
+        self.sr = sr
+        self.nBin = nBin
+        self.hopLength = hopLength * (2 ** (nBin//binsPerOctave))
+        self.binsPerOctave = binsPerOctave
+        self.downSample = downSample
+        self.gorupSize = groupSize
+
+    def fun(self, sourceDirectory: str, targetDirectory: str, sourceFile: str):
+        fileName = '.'.join(sourceFile.split('.')[:-1])
+
+        audio, _ = la.load(os.path.join(
+            sourceDirectory, sourceFile), sr=self.sr)
+        cqt = la.core.cqt(audio, self.sr, hop_length=self.hopLength,
+                          bins_per_octave=self.binsPerOctave)
+
+        destFile = "{}.npy".format(fileName)
+        destFilePath = os.path.join(targetDirectory, destFile)
+
+        # Create the target directory if it doesn't exist
+        if not os.path.exists(targetDirectory):
+            os.makedirs(targetDirectory)
+
+        with open(destFilePath, "wb") as fd:
+            np.save(fd, cqt)
+
+        return cqt
