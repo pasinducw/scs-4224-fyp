@@ -95,7 +95,7 @@ class CQTransform:
         self.hopLength = hopLengthMultiplier * (2 ** (nBin//binsPerOctave))
         self.binsPerOctave = binsPerOctave
         self.downSample = downSample
-        self.gorupSize = groupSize
+        self.groupSize = groupSize
 
     def fun(self, sourceDirectory: str, targetDirectory: str, sourceFile: str):
         fileName = '.'.join(sourceFile.split('.')[:-1])
@@ -118,6 +118,22 @@ class CQTransform:
         return cqt
 
 
+class InverseCQTransform:
+
+    def __init__(self, sr: int = STANDARD_SAMPLE_RATE, nBin: int = 96, hopLengthMultiplier: int = 1, binsPerOctave: int = 12, downSample: int = 3, groupSize: int = 1):
+        self.sr = sr
+        self.nBin = nBin
+        self.hopLength = hopLengthMultiplier * (2 ** (nBin//binsPerOctave))
+        self.binsPerOctave = binsPerOctave
+        self.downSample = downSample
+        self.groupSize = groupSize
+
+    def fun(self, cqt:np.ndarray, destinationPath: str):
+        icqt = la.core.icqt(cqt, sr=self.sr, hop_length=self.hopLength,bins_per_octave=self.binsPerOctave)
+        sf.write(destinationPath, icqt, self.sr)
+        return icqt
+
+
 
 class CQTransformWithLog:
 
@@ -127,7 +143,7 @@ class CQTransformWithLog:
         self.hopLength = hopLengthMultiplier * (2 ** (nBin//binsPerOctave))
         self.binsPerOctave = binsPerOctave
         self.downSample = downSample
-        self.gorupSize = groupSize
+        self.groupSize = groupSize
 
     def fun(self, sourceDirectory: str, targetDirectory: str, sourceFile: str):
         fileName = '.'.join(sourceFile.split('.')[:-1])
