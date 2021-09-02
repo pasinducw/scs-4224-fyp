@@ -37,6 +37,7 @@ def train_model(train_dataset, validation_dataset, epochs, device, state_dimensi
 
     model = Model(input_size=48, hidden_size=state_dimension).to(device)
     optimizer = torch.optim.Adagrad(model.parameters(), lr=1e-2)
+    loss_fn = torch.nn.CrossEntropyLoss()
 
     history = dict(train=[], validation=[])
 
@@ -62,8 +63,7 @@ def train_model(train_dataset, validation_dataset, epochs, device, state_dimensi
             optimizer.zero_grad()
 
             next_frame_pred = model(sequence)
-
-            loss = 1.0 * torch.nn.functional.mse_loss(next_frame_pred, next_frame)
+            loss = 1.0 * loss_fn(next_frame_pred, next_frame)
             loss.backward()
             optimizer.step()
 
@@ -80,7 +80,7 @@ def train_model(train_dataset, validation_dataset, epochs, device, state_dimensi
                 next_frame = next_frame.to(device)
                 next_frame_pred = model(sequence)
 
-                loss = 1.0 * torch.nn.functional.mse_loss(next_frame_pred, next_frame)
+                loss = 1.0 * loss_fn(next_frame_pred, next_frame)
                 validation_losses.append(loss.item())
                 if i % 100 == 99:
                     print("Epoch {} batch {}: validation loss {}".format(

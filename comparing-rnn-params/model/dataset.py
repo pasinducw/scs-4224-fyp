@@ -4,14 +4,14 @@ import numpy as np
 import librosa as la
 from utils import listDir, tick, tock
 
-FRAMES_PER_SAMPLE: int = 168  # number of frames per sample
+FRAMES_PER_SAMPLE: int = 336  # number of frames per sample
 HOP_LENGTH: int = 42  # number of frames to hop, to get to next sample
 # number of samples to extract from a performance
-SAMPLES_PER_PERFORMANCE: int = 60
+SAMPLES_PER_PERFORMANCE: int = 120
 
 # CQT Filtering Params
 CQT_TOP_DROP_BINS: int = 36
-CQT_PRESERVED_PEAK_COUNT: int = 10
+CQT_PRESERVED_PEAK_COUNT: int = 1
 
 
 class Covers80DatasetPerformanceChunks(torch.utils.data.Dataset):
@@ -33,22 +33,22 @@ class Covers80DatasetPerformanceChunks(torch.utils.data.Dataset):
         cqt = np.load(self.performances[performance_index])
 
         frame_offset = (index % SAMPLES_PER_PERFORMANCE) * HOP_LENGTH
-        frames = cqt[:, frame_offset:(frame_offset+FRAMES_PER_SAMPLE)]
+        frames = cqt[:, frame_offset:(frame_offset+FRAMES_PER_SAMPLE)] # [feature_size, sequence_size]
+        frames = frames.transpose() # [sequence_size, feature_size]
 
-        frames[-CQT_TOP_DROP_BINS:, :] = 0.0
-        framesLog = la.amplitude_to_db(np.abs(frames), ref=np.max)
+        frames[:, -CQT_TOP_DROP_BINS:] = 0.0
+        maxIndices = np.argmax(frames, axis=1)
 
-        sortedPeaks = np.argsort(framesLog, axis=0)
-        for (step, sortedPeak) in enumerate(np.transpose(sortedPeaks)):
-            for i in sortedPeak[:-CQT_PRESERVED_PEAK_COUNT]:
-                frames[i, step] = 0.0
-
-        framesLog = la.amplitude_to_db(np.abs(frames), ref=np.max)
-        framesLog = framesLog[:-CQT_TOP_DROP_BINS, :]
-        framesLog = np.transpose(framesLog)  # turns to [sequence_size, feature_size]
-        X = torch.from_numpy(framesLog[:-1, :])  # [sequence_size,feature_size]
-        Y = torch.from_numpy(framesLog[-1, :])  # [feature]
+        filteredFrames = np.zeros(frames.shape, dtype=np.bool)
+        for (step, index) in enumerate(maxIndices):
+            filteredFrames[step,index] = 1.0
+        
+        filteredFrames = filteredFrames[:,:-CQT_TOP_DROP_BINS]
+        
+        X = torch.from_numpy(filteredFrames[:-1, :]).type(torch.float32)  # [sequence_size,feature_size]
+        Y = torch.as_tensor(np.argmax(filteredFrames[-1, :]))  # [sequence_size]
         tock("GET ITEM {}".format(index))
+        
         return X, Y
 
 

@@ -35,8 +35,9 @@ class Model(torch.nn.Module):
     def forward(self, X):
         # X -> [batch_size, sequence_length, feature_size]
         # rnn_output -> [batch_size, sequence_length, hidden_size]
-        # prediction -> [batch_size, 1, feature_size]
-        rnn_output, (h_n, c_n) = self.rnn(X)
+        # prediction -> [batch_size, feature_size]
+        rnn_output, h_n = self.rnn(X)
         prediction = self.fc(rnn_output[:, -1, :].squeeze(1))
 
-        return torch.sigmoid(prediction)
+        logSoftmax = torch.nn.LogSoftmax(dim=1)
+        return logSoftmax(prediction)
