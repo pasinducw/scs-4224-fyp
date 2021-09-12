@@ -131,3 +131,6 @@ dmypy.json
 # Data
 data/*
 snapshots
+
+# Mac OS specific file metadata
+**/.DS_Store
