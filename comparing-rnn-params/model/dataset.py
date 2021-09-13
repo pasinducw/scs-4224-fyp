@@ -18,24 +18,31 @@ CACHE_LIMIT = 80
 
 
 class Covers80DatasetPerformanceChunks(torch.utils.data.Dataset):
-    def __init__(self, root_dir: str, excluded_transforms: list = [], validation: bool = False):
-        songs = getSongsMap(
+    def __init__(self, root_dir: str, excluded_transforms: list = [], validation: bool = False, isolated_performance_index=None):
+        performances = getPerformancesList(
             root_dir=root_dir, excluded_transforms=excluded_transforms)
         self.performances = []
         self.cache = {}
         self.cache_size = 0
+        self.isolated_performance_index = isolated_performance_index
 
-        for song in songs:
-            performances = songs[song]
-            for performance in performances:
-                self.performances.append(performance['path'])
+        for performance in performances:
+            self.performances.append(performance['path'])
+
+        if isolated_performance_index != None:
+            print("Using only {}".format(self.performances[isolated_performance_index]))
 
     def __len__(self):
+        if self.isolated_performance_index != None:
+            return 1 * SAMPLES_PER_PERFORMANCE
         return len(self.performances) * SAMPLES_PER_PERFORMANCE
 
     def __getitem__(self, index):
         tick("GET ITEM {}".format(index))
         performance_index = index // SAMPLES_PER_PERFORMANCE
+        if self.isolated_performance_index != None:
+            performance_index += self.isolated_performance_index * SAMPLES_PER_PERFORMANCE
+
         if self.performances[performance_index] in self.cache:
             cqt = self.cache[self.performances[performance_index]]
         else:
@@ -70,14 +77,12 @@ class Covers80DatasetPerformanceChunks(torch.utils.data.Dataset):
         return X, Y
 
 
-def getSongsMap(root_dir: str, excluded_transforms: list = []):
+def getPerformancesList(root_dir: str, excluded_transforms: list = []):
     songs = listDir(path=root_dir, directoriesOnly=True)
-    songsMap = {}
-
+    all_performances = []
     for song in songs:
         song_dir = os.path.join(root_dir, song)
         performances = listDir(song_dir, filesOnly=True)
-        song_performances: list = []
         for performance in performances:
             name = '.'.join(performance.split('.')[:-1])
 
@@ -91,11 +96,10 @@ def getSongsMap(root_dir: str, excluded_transforms: list = []):
                 continue
 
             data = {
+                "song": song,
                 "name": name,
                 "path": os.path.join(song_dir, performance)
             }
-            song_performances.append(data)
+            all_performances.append(data)
 
-        songsMap[song] = song_performances
-
-    return songsMap
+    return all_performances
