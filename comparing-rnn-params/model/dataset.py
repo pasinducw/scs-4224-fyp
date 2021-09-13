@@ -24,24 +24,21 @@ class Covers80DatasetPerformanceChunks(torch.utils.data.Dataset):
         self.performances = []
         self.cache = {}
         self.cache_size = 0
-        self.isolated_performance_index = isolated_performance_index
-
-        for performance in performances:
-            self.performances.append(performance['path'])
 
         if isolated_performance_index != None:
-            print("Using only {}".format(self.performances[isolated_performance_index]))
+            self.performances.append(performances[isolated_performance_index]['path'])
+            print("Using only {}".format(performances[isolated_performance_index]['name']))
+        else:
+            for performance in performances:
+                self.performances.append(performance['path'])
+
 
     def __len__(self):
-        if self.isolated_performance_index != None:
-            return 1 * SAMPLES_PER_PERFORMANCE
         return len(self.performances) * SAMPLES_PER_PERFORMANCE
 
     def __getitem__(self, index):
         tick("GET ITEM {}".format(index))
         performance_index = index // SAMPLES_PER_PERFORMANCE
-        if self.isolated_performance_index != None:
-            performance_index += self.isolated_performance_index * SAMPLES_PER_PERFORMANCE
 
         if self.performances[performance_index] in self.cache:
             cqt = self.cache[self.performances[performance_index]]

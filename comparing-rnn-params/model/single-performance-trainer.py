@@ -26,7 +26,7 @@ parser.add_argument("features_src", metavar="FEATURES_SRC",
 parser.add_argument("snapshots_src", metavar="SNAPSHOTS_SRC",
                     help="path to save snapshots")
 
-parser.add_argument("start_weights", metavar="START_WEIGHTS")
+parser.add_argument("start_weights", metavar="START_WEIGHTS", help="starting snapshot")
 
 parser.add_argument("device", metavar="DEVICE", help="cuda/cpu", default="cpu")
 parser.add_argument("batch_size", metavar="BATCH_SIZE",
@@ -35,8 +35,6 @@ parser.add_argument("workers", metavar="WORKERS",
                     help="number of workers", default=4)
 parser.add_argument("epochs", metavar="EPOCHS",
                     help="number of epochs to run", default=10)
-parser.add_argument("state", metavar="STATE_DIM",
-                    help="state dimension", default=64)
 parser.add_argument("state", metavar="STATE_DIM",
                     help="state dimension", default=64)
 
@@ -55,6 +53,7 @@ def plot_progress(train: list, progress_type: str, epoch: int, save_path: str, v
     plt.clf()
     plt.plot(x, train, label="Train {}".format(progress_type))
     if validation != None:
+        x = [*range(1, len(validation)+1)]
         plt.plot(x, validation, label="Validation {}".format(progress_type))
     plt.xlabel('Epoch')
     plt.ylabel('{}'.format(progress_type))
@@ -79,7 +78,7 @@ def train_model(train_dataset, epochs, device, state_dimension=64, save_path="",
     start_epoch = 1
 
     if start_state:
-        model.load_state_dict(start_state["model_state_dict"])
+        model.load_state_dict(start_state["best_model_weights"])
         optimizer.load_state_dict(start_state["optimizer_state_dict"])
         start_epoch = start_state["epoch"]
         history = start_state["history"]
@@ -133,9 +132,9 @@ def train_model(train_dataset, epochs, device, state_dimension=64, save_path="",
             best_loss = train_loss
             best_model_weights = copy.deepcopy(model.state_dict())
 
-        plot_progress(train=history['train'], validation=None,
+        plot_progress(train=history['train'], validation=history["validation"],
                       progress_type='Loss', epoch=epoch, save_path=save_path)
-        plot_progress(train=history['train_accuracy'], validation=None,
+        plot_progress(train=history['train_accuracy'], validation=history['validation_accuracy'],
                       progress_type='Accuracy', epoch=epoch, save_path=save_path)
 
     return best_model_weights, history
@@ -146,9 +145,7 @@ def main():
 
     excluded_transforms = [
         "_PITCH_SHIFT_0", "_PITCH_SHIFT_1", "_PITCH_SHIFT_2", "_PITCH_SHIFT_3", "_PITCH_SHIFT_4",
-        "_PITCH_SHIFT_5", "_PITCH_SHIFT_6", "_PITCH_SHIFT_7",
         "_TIME_STRETCH_0", "_TIME_STRETCH_1", "_TIME_STRETCH_2", "_TIME_STRETCH_3", "_TIME_STRETCH_4",
-        "_TIME_STRETCH_5", "_TIME_STRETCH_6", "_TIME_STRETCH_7",  "_TIME_STRETCH_8",
     ]
 
     performances = getPerformancesList(
@@ -157,7 +154,7 @@ def main():
     for (index, performance) in enumerate(performances):
         print("Training the model for {}".format(performance['name']))
 
-        snapshot_path = os.path.join(args.snapshot_src, performance["name"])
+        snapshot_path = os.path.join(args.snapshots_src, "{}-{}".format(index, performance["name"]))
         if not os.path.exists(snapshot_path):
             os.makedirs(snapshot_path)
 
@@ -165,6 +162,8 @@ def main():
             root_dir=args.features_src, excluded_transforms=excluded_transforms, isolated_performance_index=index)
         train_dataloader = torch.utils.data.DataLoader(
             train_dataset, batch_size=int(args.batch_size), num_workers=int(args.workers), shuffle=True)
+
+        print("\n\n")
 
         model_params = torch.load(args.start_weights)
 
@@ -176,6 +175,8 @@ def main():
             state_dimension=int(args.state),
             save_path=snapshot_path,
             start_state=model_params)
+
+        print("----------------------------------------")
 
 
 if __name__ == "__main__":
