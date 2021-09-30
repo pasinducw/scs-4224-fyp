@@ -30,6 +30,14 @@
   file = {/Users/pasinduwijesena/Zotero/storage/QVS2GKIZ/UCm5mt-A4w61lknZ9lCsZtBw.html}
 }
 
+@misc{701YouTube,
+  title = {(701) {{YouTube}}},
+  abstract = {Enjoy the videos and music you love, upload original content, and share it all with friends, family, and the world on YouTube.},
+  howpublished = {https://www.youtube.com/},
+  language = {en},
+  file = {/Users/pasinduwijesena/Zotero/storage/CI8RH9Q2/www.youtube.com.html}
+}
+
 @misc{70MusicTechnologyGroupYouTube,
   title = {(70) {{MusicTechnologyGroup}} - {{YouTube}}},
   howpublished = {https://www.youtube.com/c/MusicTechnologyGroup/videos},
@@ -257,10 +265,22 @@
   file = {/Users/pasinduwijesena/Zotero/storage/RHG5R8CH/index.html}
 }
 
+@misc{Covers80CoverSong,
+  title = {The Covers80 Cover Song Data Set},
+  howpublished = {http://labrosa.ee.columbia.edu/projects/coversongs/covers80/},
+  file = {/Users/pasinduwijesena/Zotero/storage/JYY67P6S/covers80.html}
+}
+
 @misc{CS230Deep,
   title = {{{CS}} 230 - {{Deep Learning Tips}} and {{Tricks Cheatsheet}}},
   howpublished = {https://stanford.edu/\textasciitilde shervine/teaching/cs-230/cheatsheet-deep-learning-tips-and-tricks},
   file = {/Users/pasinduwijesena/Zotero/storage/99LBRM98/cheatsheet-deep-learning-tips-and-tricks.html}
+}
+
+@misc{CS230Deepa,
+  title = {{{CS}} 230 - {{Deep Learning Tips}} and {{Tricks Cheatsheet}}},
+  howpublished = {https://stanford.edu/\textasciitilde shervine/teaching/cs-230/cheatsheet-deep-learning-tips-and-tricks\#running-nn},
+  file = {/Users/pasinduwijesena/Zotero/storage/YK3K73D4/cheatsheet-deep-learning-tips-and-tricks.html}
 }
 
 @misc{Datasets2021,
@@ -332,6 +352,21 @@
   file = {/Users/pasinduwijesena/Zotero/storage/4G58SRN6/how-we-identify-songs-audio-fingerprinting.html}
 }
 
+@article{dorasCoverDetectionUsing2019,
+  title = {Cover {{Detection}} Using {{Dominant Melody Embeddings}}},
+  author = {Doras, Guillaume and Peeters, Geoffroy},
+  year = {2019},
+  month = jul,
+  journal = {arXiv:1907.01824 [cs, stat]},
+  eprint = {1907.01824},
+  eprinttype = {arxiv},
+  primaryclass = {cs, stat},
+  abstract = {Automatic cover detection -- the task of finding in an audio database all the covers of one or several query tracks -- has long been seen as a challenging theoretical problem in the MIR community and as an acute practical problem for authors and composers societies. Original algorithms proposed for this task have proven their accuracy on small datasets, but are unable to scale up to modern real-life audio corpora. On the other hand, faster approaches designed to process thousands of pairwise comparisons resulted in lower accuracy, making them unsuitable for practical use. In this work, we propose a neural network architecture that is trained to represent each track as a single embedding vector. The computation burden is therefore left to the embedding extraction -- that can be conducted offline and stored, while the pairwise comparison task reduces to a simple Euclidean distance computation. We further propose to extract each track's embedding out of its dominant melody representation, obtained by another neural network trained for this task. We then show that this architecture improves state-of-the-art accuracy both on small and large datasets, and is able to scale to query databases of thousands of tracks in a few seconds.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Machine Learning,Computer Science - Sound,Statistics - Machine Learning},
+  file = {/Users/pasinduwijesena/Zotero/storage/D9LWNAW2/Doras and Peeters - 2019 - Cover Detection using Dominant Melody Embeddings.pdf;/Users/pasinduwijesena/Zotero/storage/QT8GBTRG/1907.html}
+}
+
 @article{dynamic_process_modeling_with_rnn,
   title = {Dynamic Process Modeling with Recurrent Neural Networks},
   author = {You, Yong and Nikolaou, Michael},
@@ -369,6 +404,15 @@
   file = {/Users/pasinduwijesena/Zotero/storage/E4IBL2J5/Finale - Google Drive.pdf;/Users/pasinduwijesena/Zotero/storage/4VHLEBHC/1QM7h0I7RXko65RdYJUB7UhFfIl_eOLdT.html}
 }
 
+@article{footeARTHURRetrievingOrchestral,
+  title = {{{ARTHUR}}: {{Retrieving Orchestral Music}} by {{Long}}-{{Term Structure}}},
+  author = {Foote, Jonathan},
+  pages = {6},
+  abstract = {We introduce an audio retrieval-by-example system for orchestral music. Unlike many other approaches, this system is based on analysis of the audio waveform and does not rely on symbolic or MIDI representations. ARTHUR retrieves audio on the basis of long-term structure, specifically the variation of soft and louder passages. The longterm structure is determined from envelope of audio energy versus time in one or more frequency bands. Similarity between energy profiles is calculated using dynamic programming. Given an example audio document, other documents in a collection can be ranked by similarity of their energy profiles. Experiments are presented for a modest corpus that demonstrate excellent results in retrieving different performances of the same orchestral work, given an example performance or short excerpt as a query.},
+  language = {en},
+  file = {/Users/pasinduwijesena/Zotero/storage/VD5NTRTV/Foote - ARTHUR Retrieving Orchestral Music by Long-Term S.pdf}
+}
+
 @article{gersLearningForgetContinual2000,
   title = {Learning to {{Forget}}: {{Continual Prediction}} with {{LSTM}}},
   shorttitle = {Learning to {{Forget}}},
@@ -381,6 +425,17 @@
   doi = {10.1162/089976600300015015},
   abstract = {Long short-term memory (LSTM; Hochreiter \& Schmidhuber, 1997) can solve numerous tasks not solvable by previous learning algorithms for recurrent neural networks (RNNs). We identify a weakness of LSTM networks processing continual input streams that are not a priori segmented into subsequences with explicitly marked ends at which the network's internal state could be reset. Without resets, the state may grow indefinitely and eventually cause the network to break down. Our remedy is a novel, adaptive "forget gate" that enables an LSTM cell to learn to reset itself at appropriate times, thus releasing internal resources. We review illustrative benchmark problems on which standard LSTM outperforms other RNN algorithms. All algorithms (including LSTM) fail to solve continual versions of these problems. LSTM with forget gates, however, easily solves them, and in an elegant way.},
   file = {/Users/pasinduwijesena/Zotero/storage/4B7ZBP5A/Gers et al. - 2000 - Learning to Forget Continual Prediction with LSTM.pdf}
+}
+
+@inproceedings{gomezSongRemainsSame2006,
+  title = {The Song Remains the Same: {{Identifying}} Versions of the Same Piece Using Tonal Descriptors},
+  shorttitle = {The Song Remains the Same},
+  booktitle = {University of {{Victoria}}},
+  author = {G{\'o}mez, Emilia},
+  year = {2006},
+  pages = {180--185},
+  abstract = {Identifying versions of the same song by means of automatically extracted audio features is a complex task for a music information retrieval system, even though it may seem very simple for a human listener. The design of a system to perform this task gives the opportunity to analyze which features are relevant for music similarity. This paper focuses on the analysis of tonal similarity and its application to the identification of different versions of the same piece. This work formulates the situations where a song is versioned and several musical aspects are transformed with respect to the canonical version. A quantitative evaluation is made using tonal descriptors, including chroma representations and tonality. A simple similarity measure, based on Dynamic Time Warping over transposed chroma features, yields around 55 \% accuracy, which exceeds by far the expected random baseline rate.},
+  file = {/Users/pasinduwijesena/Zotero/storage/M5E4TQFH/Gómez - 2006 - The song remains the same Identifying versions of.pdf;/Users/pasinduwijesena/Zotero/storage/XRIAA6Y2/download.html}
 }
 
 @article{groscheAudioContentBasedMusic2012,
@@ -491,6 +546,21 @@
   file = {/Users/pasinduwijesena/Zotero/storage/4L3FUUQF/Klimontovich and Boon - 1987 - Natural Flicker Noise (“1f Noise”) in Music.pdf}
 }
 
+@article{kostadinovNetworkParameterLearning2019,
+  title = {Network {{Parameter Learning Using Nonlinear Transforms}}, {{Local Representation Goals}} and {{Local Propagation Constraints}}},
+  author = {Kostadinov, Dimche and Razdehi, Behrooz and Voloshynovskiy, Slava},
+  year = {2019},
+  month = jan,
+  journal = {arXiv:1902.00016 [cs, stat]},
+  eprint = {1902.00016},
+  eprinttype = {arxiv},
+  primaryclass = {cs, stat},
+  abstract = {In this paper, we introduce a novel concept for learning of the parameters in a neural network. Our idea is grounded on modeling a learning problem that addresses a trade-off between (i) satisfying local objectives at each node and (ii) achieving desired data propagation through the network under (iii) local propagation constraints. We consider two types of nonlinear transforms which describe the network representations. One of the nonlinear transforms serves as activation function. The other one enables a locally adjusted, deviation corrective components to be included in the update of the network weights in order to enable attaining target specific representations at the last network node. Our learning principle not only provides insight into the understanding and the interpretation of the learning dynamics, but it offers theoretical guarantees over decoupled and parallel parameter estimation strategy that enables learning in synchronous and asynchronous mode. Numerical experiments validate the potential of our approach on image recognition task. The preliminary results show advantages in comparison to the state-of-the-art methods, w.r.t. the learning time and the network size while having competitive recognition accuracy.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Distributed; Parallel; and Cluster Computing,Computer Science - Machine Learning,Computer Science - Neural and Evolutionary Computing,Statistics - Machine Learning},
+  file = {/Users/pasinduwijesena/Zotero/storage/747W939M/Kostadinov et al. - 2019 - Network Parameter Learning Using Nonlinear Transfo.pdf;/Users/pasinduwijesena/Zotero/storage/WJ6NGNRY/1902.html}
+}
+
 @misc{MAESTRODataset,
   title = {The {{MAESTRO Dataset}}},
   journal = {Magenta},
@@ -510,6 +580,26 @@
   abstract = {Cover song identification has been a popular task within music information retrieval in the 20th century. The task is to identify a different version or performance of a previously recorded song. Unlike audio search for an exact matching song, this task has not yet been popularized among users, due to an ambiguous definition of a cover song and the complexity of the problem. With a great variety of methods proposed on the benchmarking challenges, it is increasingly difficult to compare advantages and disadvantages of the features and algorithms. We provide a comparison of three levels of feature extraction (chroma features, chroma vector distances, chord distances) and show how each level affects the results. We further distinguish five scores for dynamic time warping method, to find the best performance in conjunction with the features. Results were evaluated on covers80 and SecondHandSongs datasets and compared to the state-of-the-art.},
   isbn = {978-3-319-59104-9},
   file = {/Users/pasinduwijesena/Zotero/storage/6YV5ZMHF/Maršík et al. - 2017 - Evaluation of Chord and Chroma Features and Dynami.pdf}
+}
+
+@article{mcfeeSTRUCTUREDTRAININGLARGEVOCABULARY,
+  title = {{{STRUCTURED TRAINING FOR LARGE}}-{{VOCABULARY CHORD RECOGNITION}}},
+  author = {McFee, Brian and Bello, Juan Pablo},
+  pages = {7},
+  abstract = {Automatic chord recognition systems operating in the large-vocabulary regime must overcome data scarcity: certain classes occur much less frequently than others, and this presents a significant challenge when estimating model parameters. While most systems model the chord recognition task as a (multi-class) classification problem, few attempts have been made to directly exploit the intrinsic structural similarities between chord classes.},
+  language = {en},
+  file = {/Users/pasinduwijesena/Zotero/storage/93SVXXWW/McFee and Bello - STRUCTURED TRAINING FOR LARGE-VOCABULARY CHORD REC.pdf}
+}
+
+@article{miroMASKRobustLocal2012,
+  title = {{{MASK}}: {{Robust Local Features}} for {{Audio Fingerprinting}}},
+  shorttitle = {{{MASK}}},
+  author = {Mir{\'o}, Xavier Anguera and Garzon, Antonio and Adamek, Tomasz},
+  year = {2012},
+  journal = {2012 IEEE International Conference on Multimedia and Expo},
+  doi = {10.1109/ICME.2012.137},
+  abstract = {A novel local audio fingerprint called MASK (Masked Audio Spectral Keypoints) that can effectively encode the acoustic information existent in audio documents and discriminate between transformed versions of the same acoustic documents and other unrelated documents is presented. This paper presents a novel local audio fingerprint called MASK (Masked Audio Spectral Keypoints) that can effectively encode the acoustic information existent in audio documents and discriminate between transformed versions of the same acoustic documents and other unrelated documents. The fingerprint has been designed to be resilient to strong transformations of the original signal and to be usable for generic audio, including music and speech. Its main characteristics are its locality, binary encoding, robustness and compactness. The proposed audio fingerprint encodes the local spectral energies around salient points selected among the main spectral peaks in a given signal. Such encoding is done by centering on each point a carefully designed mask defining regions of the spectrogram whose average energies are compared with each other. From each comparison we obtain a single bit depending on which region has more energy, and group all bits into a final binary fingerprint. In addition, the fingerprint also stores the frequency of each peak, quantized using a Mel filterbank. The length of the fingerprint is solely defined by the number of compared regions being used, and can be adapted to the requirements of any particular application. In addition, the number of salient points encoded per second can be also easily modified. In the experimental section we show the suitability of such fingerprint to find matching segments by using the NIST-TRECVID benchmarking evaluation datasets by comparing it with a well known fingerprint, obtaining up to 26\% relative improvement in NDCR score.},
+  file = {/Users/pasinduwijesena/Zotero/storage/E8WIKEA2/Miró et al. - 2012 - MASK Robust Local Features for Audio Fingerprinti.pdf}
 }
 
 @misc{MTGDatacos2021,
@@ -627,6 +717,16 @@
   file = {/Users/pasinduwijesena/Zotero/storage/IWG3N2FC/Reiss - 2003 - Nonlinear Time Series Analysis Of Musical Signals.pdf}
 }
 
+@article{robelNeuralNetworkModeling1996,
+  title = {Neural {{Network Modeling}} of {{Speech}} and {{Music Signals}}},
+  author = {R{\"o}bel, Axel},
+  year = {1996},
+  pages = {8},
+  abstract = {Time series prediction is one of the major applications of neural networks. After a short introduction into the basic theoretical foundations we argue that the iterated prediction of a dynamical system may be interpreted as a model of the system dynamics. By means of RBF neural networks we describe a modeling approach and extend it to be able to model instationary systems. As a practical test for the capabilities of the method we investigate the modeling of musical and speech signals and demonstrate that the model may be used for synthesis of musical and speech signals.},
+  language = {en},
+  file = {/Users/pasinduwijesena/Zotero/storage/F5ZZNPAB/Röbel - Neural Network Modeling of Speech and Music Signal.pdf}
+}
+
 @article{robertsHierarchicalLatentVector2019,
   title = {A {{Hierarchical Latent Vector Model}} for {{Learning Long}}-{{Term Structure}} in {{Music}}},
   author = {Roberts, Adam and Engel, Jesse and Raffel, Colin and Hawthorne, Curtis and Eck, Douglas},
@@ -730,6 +830,36 @@
   file = {/Users/pasinduwijesena/Zotero/storage/8T9GMC6D/Serrà et al. - 2010 - Audio Cover Song Identification and Similarity Ba.pdf;/Users/pasinduwijesena/Zotero/storage/DE746HQL/Serrà et al. - 2010 - Audio Cover Song Identification and Similarity Ba.pdf}
 }
 
+@article{serraChromaBinarySimilarity2008,
+  title = {Chroma {{Binary Similarity}} and {{Local Alignment Applied}} to {{Cover Song Identification}}},
+  author = {Serra, Joan and G{\'o}mez, Emilia and Herrera, Perfecto and Serra, Xavier},
+  year = {2008},
+  month = sep,
+  journal = {Audio, Speech, and Language Processing, IEEE Transactions on},
+  volume = {16},
+  pages = {1138--1151},
+  doi = {10.1109/TASL.2008.924595},
+  abstract = {We present a new technique for audio signal comparison based on tonal subsequence alignment and its application to detect cover versions (i.e., different performances of the same underlying musical piece). Cover song identification is a task whose popularity has increased in the music information retrieval (MIR) community along in the past, as it provides a direct and objective way to evaluate music similarity algorithms. This paper first presents a series of experiments carried out with two state-of-the-art methods for cover song identification. We have studied several components of these (such as chroma resolution and similarity, transposition, beat tracking or dynamic time warping constraints), in order to discover which characteristics would be desirable for a competitive cover song identifier. After analyzing many cross-validated results, the importance of these characteristics is discussed, and the best performing ones are finally applied to the newly proposed method. Multiple evaluations of this one confirm a large increase in identification accuracy when comparing it with alternative state-of-the-art approaches.},
+  file = {/Users/pasinduwijesena/Zotero/storage/XVXTAL4K/Serra et al. - 2008 - Chroma Binary Similarity and Local Alignment Appli.pdf}
+}
+
+@article{serraCrossRecurrenceQuantification2009,
+  title = {Cross Recurrence Quantification for Cover Song Identification},
+  author = {Serr{\`a}, Joan and Serra, Xavier and Andrzejak, Ralph G.},
+  year = {2009},
+  month = sep,
+  journal = {New Journal of Physics},
+  volume = {11},
+  number = {9},
+  pages = {093017},
+  publisher = {{IOP Publishing}},
+  issn = {1367-2630},
+  doi = {10.1088/1367-2630/11/9/093017},
+  abstract = {There is growing evidence that nonlinear time series analysis techniques can be used to successfully characterize, classify, or process signals derived from real-world dynamics even though these are not necessarily deterministic and stationary. In the present study, we proceed in this direction by addressing an important problem our modern society is facing, the automatic classification of digital information. In particular, we address the automatic identification of cover songs, i.e. alternative renditions of a previously recorded musical piece. For this purpose, we here propose a recurrence quantification analysis measure that allows the tracking of potentially curved and disrupted traces in cross recurrence plots (CRPs). We apply this measure to CRPs constructed from the state space representation of musical descriptor time series extracted from the raw audio signal. We show that our method identifies cover songs with a higher accuracy as compared to previously published techniques. Beyond the particular application proposed here, we discuss how our approach can be useful for the characterization of a variety of signals from different scientific disciplines. We study coupled R\"ossler dynamics with stochastically modulated mean frequencies as one concrete example to illustrate this point.},
+  language = {en},
+  file = {/Users/pasinduwijesena/Zotero/storage/B3MI65EM/Serrà et al. - 2009 - Cross recurrence quantification for cover song ide.pdf}
+}
+
 @article{serraUniversalNeuralNetwork2018,
   title = {Towards a Universal Neural Network Encoder for Time Series},
   author = {Serr{\`a}, Joan and Pascual, Santiago and Karatzoglou, Alexandros},
@@ -786,6 +916,14 @@
   file = {/Users/pasinduwijesena/Zotero/storage/LR5JR9I7/Serra et al. - 2014 - Unsupervised Music Structure Annotation by Time Se.pdf}
 }
 
+@misc{ShazamMusicDiscovery,
+  title = {Shazam - {{Music Discovery}}, {{Charts}} \& {{Song Lyrics}}},
+  journal = {Shazam},
+  abstract = {Identify the music playing around you. Explore the music you love. Discover songs, lyrics, and artists on Shazam.},
+  howpublished = {https://www.shazam.com},
+  file = {/Users/pasinduwijesena/Zotero/storage/UFDFZDA6/www.shazam.com.html}
+}
+
 @article{sift,
   title = {{{SIFT}}-Based Local Spectrogram Image Descriptor: A Novel Feature for Robust Music Identification},
   shorttitle = {{{SIFT}}-Based Local Spectrogram Image Descriptor},
@@ -808,6 +946,16 @@
   year = {2020},
   month = may,
   abstract = {Presentation by Xavier Serra at ICASSP2020 - 2020 IEEE International Conference on Acoustics, Speech and Signal Processing. https://2020.ieeeicassp.org/program/e...}
+}
+
+@article{sixPanakoScalableAcoustic2014,
+  title = {Panako - {{A Scalable Acoustic Fingerprinting System Handling Time}}-{{Scale}} and {{Pitch Modification}}},
+  author = {Six, Joren and Leman, M.},
+  year = {2014},
+  journal = {undefined},
+  abstract = {A scalable granular acoustic fingerprinting system robust against time and pitch scale modification is presented, designed to be robust against pitch shifting, time stretching and tempo changes, while remaining scalable. In this paper a scalable granular acoustic fingerprinting system robust against time and pitch scale modification is presented. The aim of acoustic fingerprinting is to identify identical, or recognize similar, audio fragments in a large set using condensed representations of audio signals, i.e. fingerprints. A robust fingerprinting system generates similar fingerprints for perceptually similar audio signals. The new system, presented here, handles a variety of distortions well. It is designed to be robust against pitch shifting, time stretching and tempo changes, while remaining scalable. After a query, the system returns the start time in the reference audio, and the amount of pitch shift and tempo change that has been applied. The design of the system that offers this unique combination of features is the main contribution of this research. The fingerprint itself consists of a combination of key points in a Constant-Q spectrogram. The system is evaluated on commodity hardware using a freely available reference database with fingerprints of over 30.000 songs. The results show that the system responds quickly and reliably on queries, while handling time and pitch scale modifications of up to ten percent.},
+  language = {en},
+  file = {/Users/pasinduwijesena/Zotero/storage/QLZXV8UU/Six - PANAKO -A SCALABLE ACOUSTIC FINGERPRINTING SYSTEM .pdf;/Users/pasinduwijesena/Zotero/storage/K3LGMK29/PANAKO_A_SCALABLE_ACOUSTIC_FINGERPRINTING_SYSTEM_HANDLING_TIME_SCALE_AND_PITCH_MODIFICATION.html;/Users/pasinduwijesena/Zotero/storage/S3CCCS9E/b414dcf8ea065825ddf0f4d646e293e5b086f04d.html}
 }
 
 @misc{TableComparisonMean,
@@ -842,6 +990,16 @@
   howpublished = {https://iq.opengenus.org/vgg19-architecture/},
   language = {en},
   file = {/Users/pasinduwijesena/Zotero/storage/BAVGVJ5A/vgg19-architecture.html}
+}
+
+@inproceedings{vaswaniAttentionAllYou2017,
+  title = {Attention Is {{All}} You {{Need}}},
+  booktitle = {Advances in {{Neural Information Processing Systems}}},
+  author = {Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N and Kaiser, {\L}ukasz and Polosukhin, Illia},
+  year = {2017},
+  volume = {30},
+  publisher = {{Curran Associates, Inc.}},
+  file = {/Users/pasinduwijesena/Zotero/storage/AQSCHEEC/Vaswani et al. - 2017 - Attention is All you Need.pdf}
 }
 
 @inproceedings{verleysenCurseDimensionalityData2005,
@@ -956,6 +1114,16 @@
   file = {/Users/pasinduwijesena/Zotero/storage/FG4CZ8AN/Yesiler et al. - 2020 - Accurate and Scalable Version Identification Using.pdf;/Users/pasinduwijesena/Zotero/storage/HEDXQ8GC/1910.html}
 }
 
+@article{yesilerDATACOSDATASETCOVER2019,
+  title = {{{DA}}-{{TACOS}}: {{A DATASET FOR COVER SONG IDENTIFICATION AND UNDERSTANDING}}},
+  author = {Yesiler, Furkan and Tralie, Chris and Correya, Albin and Silva, Diego F and Tovstogan, Philip and G{\'o}mez, Emilia and Serra, Xavier},
+  year = {2019},
+  pages = {8},
+  abstract = {This paper focuses on Cover Song Identification (CSI), an important research challenge in content-based Music Information Retrieval (MIR). Although the task itself is interesting and challenging for both academia and industry scenarios, there are a number of limitations for the advancement of current approaches. We specifically address two of them in the present study. First, the number of publicly available datasets for this task is limited, and there is no publicly available benchmark set that is widely used among researchers for comparative algorithm evaluation. Second, most of the algorithms are not publicly shared and reproducible, limiting the comparison of approaches. To overcome these limitations we propose Da-TACOS, a DaTAset for COver Song Identification and Understanding, and two frameworks for feature extraction and benchmarking to facilitate reproducibility. Da-TACOS contains 25K songs represented by unique editorial metadata plus 9 low- and mid-level features pre-computed with open source libraries, and is divided into two subsets. The Cover Analysis subset contains audio features (e.g. key, tempo) that can serve to study how musical characteristics vary for cover songs. The Benchmark subset contains the set of features that have been frequently used in CSI research, e.g. chroma, MFCC, beat onsets etc. Moreover, we provide initial benchmarking results of a selected number of state-of-the-art CSI algorithms using our dataset, and for reproducibility, we share a GitHub repository containing the feature extraction and benchmarking frameworks.},
+  language = {en},
+  file = {/Users/pasinduwijesena/Zotero/storage/DS8W6KK3/Yesiler et al. - 2019 - DA-TACOS A DATASET FOR COVER SONG IDENTIFICATION .pdf}
+}
+
 @article{yesilerInvestigatingEfficacyMusic2021,
   title = {Investigating the Efficacy of Music Version Retrieval Systems for Setlist Identification},
   author = {Yesiler, Furkan and Molina, Emilio and Serr{\`a}, Joan and G{\'o}mez, Emilia},
@@ -1060,6 +1228,22 @@
   archiveprefix = {arXiv},
   keywords = {Computer Science - Machine Learning,Computer Science - Multimedia,Computer Science - Sound,Electrical Engineering and Systems Science - Audio and Speech Processing},
   file = {/Users/pasinduwijesena/Zotero/storage/Y9KJDJCN/Yu et al. - 2020 - Contrastive Unsupervised Learning for Audio Finger.pdf;/Users/pasinduwijesena/Zotero/storage/NSD8D7MZ/2010.html}
+}
+
+@inproceedings{yuTemporalPyramidPooling2019,
+  title = {Temporal {{Pyramid Pooling Convolutional Neural Network}} for {{Cover Song Identification}}},
+  booktitle = {Proceedings of the {{Twenty}}-{{Eighth International Joint Conference}} on {{Artificial Intelligence}}},
+  author = {Yu, Zhesong and Xu, Xiaoshuo and Chen, Xiaoou and Yang, Deshun},
+  year = {2019},
+  month = aug,
+  pages = {4846--4852},
+  publisher = {{International Joint Conferences on Artificial Intelligence Organization}},
+  address = {{Macao, China}},
+  doi = {10.24963/ijcai.2019/673},
+  abstract = {Cover song identification is an important problem in the field of Music Information Retrieval. Most existing methods rely on hand-crafted features and sequence alignment methods, and further breakthrough is hard to achieve. In this paper, Convolutional Neural Networks (CNNs) are used for representation learning toward this task. We show that they could be naturally adapted to deal with key transposition in cover songs. Additionally, Temporal Pyramid Pooling is utilized to extract information on different scales and transform songs with different lengths into fixed-dimensional representations. Furthermore, a training scheme is designed to enhance the robustness of our model. Extensive experiments demonstrate that combined with these techniques, our approach is robust against musical variations existing in cover songs and outperforms state-of-the-art methods on several datasets with low time complexity.},
+  isbn = {978-0-9992411-4-1},
+  language = {en},
+  file = {/Users/pasinduwijesena/Zotero/storage/DCVQAHSA/Yu et al. - 2019 - Temporal Pyramid Pooling Convolutional Neural Netw.pdf}
 }
 
 
