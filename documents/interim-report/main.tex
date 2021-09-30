@@ -1,0 +1,130 @@
+\documentclass[12pt]{extarticle}
+\usepackage[utf8]{inputenc}
+
+\usepackage{parskip}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{cite}
+\usepackage{glossaries}
+\usepackage{makecell}
+\usepackage{array}
+\usepackage{subfiles}
+
+\setlength{\parskip}{1em}
+
+
+\subfile{glossaries}
+\makeglossaries
+
+
+\begin{document}
+\begin{titlepage}
+    \begin{center}
+        
+        \Large
+        Interim Report
+            
+        \Huge
+        \textbf{Extracting Complex Dynamics of Music with Machine-Learning for Music Similarity Measurement}
+            
+        \vspace{0.5cm}
+        
+            
+        \vspace{1.5cm}
+        \Large
+            
+        \vfill
+        Researcher: P.C. Wijesena\\
+        Index number: 17001951\\
+        
+        \vspace{5mm} %5mm vertical space
+        Supervisor: Prof. K.L. Jayarathne\\
+        
+        Co-Supervisor: Dr. M.I.E Wickramasinghe\\
+        \normalsize
+
+        \vspace{1.5cm}
+
+        \includegraphics[width=0.2\textwidth]{images/ucsc-logo.png}  
+       
+        Submitted in partial fulfilment of the requirements of the
+Bachelor of Science (Hons.) in Computer Science
+Final Year Project in Computer Science (SCS 4224)
+
+    \end{center}
+\end{titlepage}
+
+\begin{center}
+    
+\pagenumbering{roman}
+
+\Large
+\textbf{Signatures of Researcher and Supervisors}
+
+\vfill
+
+\dotfill
+
+\large
+P.C. Wijesena\\
+Researcher
+
+\vfill
+
+
+\dotfill
+
+\large
+Prof. K.L. Jayarathne\\
+Supervisor
+
+\vfill
+
+
+
+\dotfill
+
+\large
+Dr. M.I.E Wickramasinghe\\
+Co-Supervisor
+
+\end{center}
+
+\newpage
+
+
+
+\tableofcontents
+\listoftables
+\listoffigures
+
+\printglossaries
+
+\newpage
+
+
+
+
+
+\pagenumbering{arabic}
+
+\section{Section One}
+\subfile{sections/section1}
+
+\newpage
+\section{Section Two}
+\subfile{sections/section2}
+\newpage
+
+\section{Section Three}
+\subfile{sections/section3}
+\newpage
+
+\newpage
+
+\bibliographystyle{IEEEtran}
+\bibliography{citations}
+\addcontentsline{toc}{section}{References}
+
+
+\end{document}

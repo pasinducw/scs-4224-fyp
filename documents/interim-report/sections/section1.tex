@@ -1,0 +1,139 @@
+\documentclass[../main.tex]{subfiles}
+\graphicspath{ {images/} }
+\begin{document}
+
+\subsection{Introduction}
+
+\par
+Rapidly growing corpus of digital music content requires novel technologies to allow consumers to interact and owners to benefit from such content. Music Information Retrieval (\gls{MIR}) refers to the domain of tasks that organize music-related information, and make them accessible and useful. Content-based audio retrieval is a sub-domain of \gls{MIR}. Content-based audio retrieval systems respond to queries of users by using information extracted from raw musical works (audio files, musical scores, MIDI files etc.) instead of relying on manually fed metadata (Eg: title, genre, composer). Audio identification and version identification are two sub-tasks that come under content-based audio retrieval tasks \cite{book}.
+
+\par
+Both audio identification and version identification tasks expect the systems to respond user queries with similar musical documents present in the system database. Difference in these two types of tasks lie in their specificity. Audio identification expects the system to return audio documents that perceptually sound the same to a user. Good audio identification systems are robust to deformations such as compression artefacts introduced in different types of encoding systems, noise introduced during transmission, and unnoticeable changes in frequency and speed \cite{book}. Version identification systems are expected to retrieve musical works that are "musically similar" \cite{serraAudioCoverSong2010}. Good version identification systems have to be able to identify different performances of the same song (Eg: cover songs of an original song) as referring to the same musical work). Both of these tasks rely on a metric that can measure the similarity of a query audio to a set of audios on a reference database. Over the past few decades, people have experimented and built such metrics that have been incorporated into audio and version identification systems.
+
+\par
+These audio and version identification systems operate on digital representations of audio, available as discrete waveforms. However, directly operating on these waveforms is not feasible due to the high dimensionality (Music files are usually encoded at 44.1kHz resulting in 44,100 frames per second). Hence, transformations are applied to the waveforms to convert them to frequency-time representations. Starting from this base, different systems apply various transformations to the audio representations  and finally perform calculations between the query and reference audio representations to compute the similarity scores. However, among these transformations there is an area that has not yet been explored. That is the consideration of the audio waves of musical works as readings taken from a dynamical system \cite{complex_dynamics}, and using the dynamics of the individual dynamical systems to characterize and compare between different musical works. The goal of this research is to fill that gap.
+
+
+
+
+\subsection{Theoretical Background}
+
+\par
+In 1990, Boon et al. put forward a new way to analyze musical works. That is considering a musical sequence as a time series, characterizing the dynamics of the musical sequence as a problem in dynamical systems theory, in the way the theory has been used to identify chaotic behavior of complex systems such as turbulence \cite{complex_dynamics}. In this work, the authors analyze musical dynamics from a spatial representation of the time series. This analysis has established clear differences between a a simple musical sequence, random non-musical sequence, and a complex musical sequence (See Figure \ref{fig:phase-diagrams}). But the authors have not been able to characterize and compare musical works beyond this point using the spatial representations \cite{boonDynamicalSystemsTheory1995}. A comment by the authors is that the analysis is too simple to extract more detailed information about musical works.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{phase-diagrams.png}
+    \caption{3-D phase portraits of (a) Ascending and descending major scale, (b) White noise music, and (c) J.S. Bach's Musical Offering (Ricercar)}
+    \label{fig:phase-diagrams}
+\end{figure}
+
+\par
+In 1996, J. Reiss has been able to model the dynamics of a saxophone tone using neural networks. The author has been able to synthesize the saxophone signal using the trained network \cite{robelNeuralNetworkModeling1996}. Hence it's been shown in the literature that modeling the dynamics of the sound of a musical instrument is possible with neural networks. Later on in 2018, Cheng et al. have built a generative \gls{RNN} (Recurrent Neural Network) model to capture dynamics of musical works  \cite{tian_cheng_comparing_2018}. Although the network has been able to synthesize the musical works, direct comparison of modeled dynamics have not yielded meaningful results. The authors have not made any attempts to guide the learning algorithm to model dynamics to support comparisons. Hence there is more work to be done before coming to a conclusion about the utility of complex dynamics of musical works in the task of music similarity measurement.
+
+
+\subsection{Problem Statement}
+
+\par
+The complex dynamics of musical works are determined by many intrinsic properties that can help to characterize musical works \cite{complex_dynamics}, and neural networks have the capacity to capture these dynamics of musical works \cite{robelNeuralNetworkModeling1996}\cite{dynamic_process_modeling_with_rnn}. Existing literature on audio and version identification tasks have not made attempts to measure similarity of musical performances using these dynamics. Hence this research will focus on building a similarity metric that can be used to measure similarity between musical performances using the complex dynamics of musical works, to help with audio and version identification tasks.
+
+
+
+\subsection{Motivation}
+
+\par
+Every day, more and more audio-visual content is published on online media-platforms such as YouTube\footnote{https://youtube.com}, TikTok\footnote{https://tiktok.com}, and Instagram\footnote{https://instagram.com}. Rapid growth of digital content on the Internet requires new applications that can extract better information out of these content. The large amount of data also makes it infeasible to manually label these data. Hence content-based information retrieval systems are needed to solve this problem. But there is still more space to improve the accuracy and speed of such systems with new innovations.
+
+\par
+Moreover, attempts to characterize music using the dynamics of the musical works date back over three decades. Early attempts have failed because they lack the complexity required to capture and extract meaningful information from underlying dynamics of musical works. But with advancement of technology, especially in the field of machine learning, it's possible to build data-driven models that can capture very complex patterns from data. Hence, applying such techniques might make it possible to characterize musical works based on their underlying dynamics.
+
+
+\subsection{Research Questions}
+
+\normalsize
+\begin{enumerate}
+  \item What approaches can be used to extract complex dynamics of music, to use with music similarity measurement?
+  \item What are the performance and robustness aspects of the identified approaches in the context of music similarity measurement?
+\end{enumerate}
+
+\subsection{Project Aim}
+Extract complex dynamics of musical works to unveil intrinsic properties of music to help Music Information Retrieval.
+
+
+\subsection{Objectives}
+\begin{itemize}
+  \item Explore and identify approaches that can be used to model the dynamics of dynamical systems
+  \item Explore and identify approaches that can be used to extract meaningful information from the captured dynamics
+  \item Design, develop and evaluate different feature extraction mechanisms based on the identified approaches to conduct similarity measurement
+  \item Evaluate the robustness of developed feature extraction mechanisms in audio identification task
+  \item Evaluate the robustness of developed feature extraction mechanisms in version identification task
+\end{itemize}
+
+
+
+\subsection{Methodology}
+\par
+This research will use existing theories and knowledge in \gls{MIR}, machine-learning, and time-series analysis domains to build and evaluate a metric for music similarity measurement with respect to music identification and version identification tasks. Specifically, work done by Cheng et al. will be translated to the audio domain, implemented, and used as the baseline for the research \cite{tian_cheng_comparing_2018}.
+
+\par
+Data obtained from publicly available secondary data sources such as Covers80, and Da-TACOS will be used to conduct the experiments and evaluate results \cite{Covers80CoverSong}\cite{yesilerDATACOSDATASETCOVER2019}. The data will comprise of audio files, metadata, and pre-extracted features such as crema-PCP \cite{mcfeeSTRUCTUREDTRAININGLARGEVOCABULARY}. Hence all data will be quantitative, and cross-sectional in nature.
+
+\par
+The performance of the similarity measurement metric will be evaluated separately for the two types of tasks in hand (a) Music Identification, and (b) Version Identification. For the evaluation of performance with respect to music identification, hit-rate will be used as the metric. For the evaluation of performance with respect to version identification, standard measures found in literature such as Mean Average Precision and Mean-Rank-1 (MR1) will be used. For the evaluation of robustness with respect to music identification and version identification, transformation found in the literature such as pitch-shift, noise addition, time-stretch, will be added to the data and the changes in hit-rate will be observed. To conduct an objective comparison between existing systems, few baseline models with different internal architectures will be implemented for both tasks. 
+
+
+
+\iffalse
+\subsection{Significance of the Project}
+\par
+Music, being tightly coupled to the flow of time has complex dynamics which it is built upon. Current techniques available for music identification, and version identification do not consider this aspect of music. Therefore more work must be done in this area to explore the usability of this aspect of music to build music and version identification systems. 
+
+\par
+Furthermore, the dynamical properties have the potential to reveal patterns inherent to certain composers, genres, cultures, time periods etc. from musical works, which would act as a new basis to conduct more research in the \gls{MIR} domain.
+\fi
+
+
+\subsection{Scope and Delimitations}
+
+\subsubsection{In-Scope}
+\begin{itemize}
+    \item Building a similarity metric that can be used for music identification
+    \item Building a similarity metric that can be used for version identification
+\end{itemize}
+
+\subsubsection{Out-of-Scope}
+\begin{itemize}
+    \item Improving the run-time and memory efficiency of similarity score calculation
+    \item Building a complete music / version identification system with deployable architectures
+\end{itemize}
+
+
+\subsection{Timeline}
+\begin{table}[h]
+    \centering
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
+    \hline
+        Activity & May & Jun & July & Aug & Sep & Oct & Nov & Dec & Jan & Feb \\
+        \hline
+        Problem Analysis & x& x& &&&&&&&\\
+        \hline
+        Literature Survey & & x & x & x & x & o & o & o & o & \\
+        \hline
+        Dataset Preparation & & x & x & x &  & & o& o& & \\
+        \hline
+        Preliminary Experiments & & & x & x & x& o& &&&\\
+        \hline
+        \makecell{Development and training of \\dynamical feature extractor} &&&&& x& o& o& o& & \\
+        \hline
+        \makecell{Evaluating results and \\ conducting comparison study} &&&&&&&& o& o& \\
+        \hline
+        Publication of research &&&&&&& o& o& o& o \\
+        \hline
+    \end{tabular}
+    }
+    \caption{Expected Timeline}
+    \label{tab:my_label}
+\end{table}
+
+\end{document}
