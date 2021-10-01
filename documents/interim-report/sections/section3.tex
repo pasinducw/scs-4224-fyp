@@ -2,9 +2,50 @@
 \graphicspath{ {images/} }
 \begin{document}
 \subsection{Evaluation Plan}
-WRITE 
+In order to answer the research questions, multiple neural networks will be built, trained, and tested on multiple datasets. Two different evaluation plans will be used for the two \gls{MIR} tasks.
+
+\subsubsection{Audio Identification Task}
+Audio files of the musical works are required to evaluate the performance with music identification task. Therefore the Covers80 dataset and FMA dataset will be used, because both the datasets are distributed along with the audio files \cite{Covers80CoverSong,defferrardFMADatasetMusic2017}. Multiple augmentations such as pitch-shift, time-stretch, noise-addition, and trimming, will be applied on the original audio files to prepare the query audio sequences. Performance in audio identification is measured in the literature using "hit-rate". Equation (1) shows the formula for hit-rate (HR) calculation where CQ is the number of correctly identified queries, and TQ is the total number of queries.
+
+\begin{equation}
+    HR = 100 \times \frac{CQ}{TQ}
+\end{equation}
+
+\par
+The robustness of the distance metric will be evaluated by applying different thresholds on the augmentations used on the queries.
+
+
+\subsubsection{Version Identification Task}
+Da-Tacos dataset and Covers80 dataset will be used to evaluate the performance of the similarity metric in version identification task \cite{yesilerDaTACOSDatasetCover2019,Covers80CoverSong}. The following metrics which are commonly found in version identification literature will be used for the evaluation.
+\begin{itemize}
+    \item Mean Rank (MR)
+    \item Mean Rank of 1 (MR1)
+    \item Median Rank (MDR)
+    \item Mean Average Precision (MAP)
+\end{itemize}
+
+
 
 \subsection{Research Tools}
-This research is expected to be conducted using the best practices of scientific experimentation and scientific writing. Hence several tools are used to make this possible. \LaTeX\footnote{https://www.latex-project.org} is used to create scientific documents such as this. Zotero\footnote{https://www.zotero.org} reference management tool is used to keep track, classify, and to securely store the literature discovered through the internet. Moreover, Zotero's support for bibliography management is extensively used with \LaTeX\ to create documents. Notion\footnote{https://www.notion.so} is used to keep notes on important publications. Trello\footnote{https://trello.com} is used to keep track of the progress of the research. Miro\footnote{https://miro.com} is used to visually jot down the thoughts and concepts, and it is used extensively to map the relationships found between publications. Experiments are conducted using Jupyter Notebooks\footnote{https://jupyter.org}, and PyTorch\footnote{https://pytorch.org} is used as the main library to build neural networks. Git\footnote{https://git-scm.com} version controlling system is used to keep track of the experiments, and is hosted on GitHub\footnote{https://github.com} for safety.
+
+This research is expected to be conducted using the best practices of scientific experimentation and scientific writing. Hence several tools are used to make this possible.
+
+\subsubsection{Document Typesetting}
+\LaTeX\footnote{https://www.latex-project.org} is used to compose scientific documents such as this. It's a high-quality typesetting software with a great variety of features designed to help compose technical and scientific documents.
+
+\subsubsection{Reference Management}
+Zotero\footnote{https://www.zotero.org} reference management tool is used to keep track, classify, and to securely store the literature discovered through the internet. Moreover, Zotero's support for bibliography management is extensively used with \LaTeX\ to create documents.
+
+\subsubsection{Note Taking}
+Notion\footnote{https://www.notion.so} is used to keep notes on important publications. It is a tool that provides components such as notes, kanban boards, wikis with the ability to link and organize every component.
+
+\subsubsection{Idea Visualization}
+Miro\footnote{https://miro.com} is used to visually jot down the thoughts and concepts, and it is used extensively to map the relationships found between publications.
+
+\subsubsection{Interactive Computing Tool}
+Experimental results are analyzed using Jupyter Notebooks\footnote{https://jupyter.org}. It's interactive editor gives the ability to quickly prototype and see results.
+
+\subsubsection{Version Controlling}
+Git\footnote{https://git-scm.com} version controlling system is used to keep track of the experiments, and is hosted on GitHub\footnote{https://github.com} for safety.
 
 \end{document}

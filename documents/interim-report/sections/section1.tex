@@ -19,7 +19,7 @@ These audio and version identification systems operate on digital representation
 \subsection{Theoretical Background}
 
 \par
-In 1990, Boon et al. put forward a new way to analyze musical works. That is considering a musical sequence as a time series, characterizing the dynamics of the musical sequence as a problem in dynamical systems theory, in the way the theory has been used to identify chaotic behavior of complex systems such as turbulence \cite{complex_dynamics}. In this work, the authors analyze musical dynamics from a spatial representation of the time series. This analysis has established clear differences between a a simple musical sequence, random non-musical sequence, and a complex musical sequence (See Figure \ref{fig:phase-diagrams}). But the authors have not been able to characterize and compare musical works beyond this point using the spatial representations \cite{boonDynamicalSystemsTheory1995}. A comment by the authors is that the analysis is too simple to extract more detailed information about musical works.
+In 1990, Boon et al. put forward a new way to analyze musical works. That is considering a musical sequence as a time series, characterizing the dynamics of the musical sequence as a problem in dynamical systems theory, in the way the theory has been used to identify chaotic behavior of complex systems such as turbulence \cite{complex_dynamics}. In this work, the authors analyze musical dynamics from a spatial representation of the time series. This analysis has established clear differences between a a simple musical sequence, random non-musical sequence, and a complex musical sequence (Refer Figure \ref{fig:phase-diagrams}). But the authors have not been able to characterize and compare musical works beyond this point using the spatial representations \cite{boonDynamicalSystemsTheory1995}. A comment by the authors is that the analysis is too simple to extract more detailed information about musical works.
 
 \begin{figure}[h]
     \centering
@@ -29,13 +29,13 @@ In 1990, Boon et al. put forward a new way to analyze musical works. That is con
 \end{figure}
 
 \par
-In 1996, J. Reiss has been able to model the dynamics of a saxophone tone using neural networks. The author has been able to synthesize the saxophone signal using the trained network \cite{robelNeuralNetworkModeling1996}. Hence it's been shown in the literature that modeling the dynamics of the sound of a musical instrument is possible with neural networks. Later on in 2018, Cheng et al. have built a generative \gls{RNN} (Recurrent Neural Network) model to capture dynamics of musical works  \cite{tian_cheng_comparing_2018}. Although the network has been able to synthesize the musical works, direct comparison of modeled dynamics have not yielded meaningful results. The authors have not made any attempts to guide the learning algorithm to model dynamics to support comparisons. Hence there is more work to be done before coming to a conclusion about the utility of complex dynamics of musical works in the task of music similarity measurement.
+In 1996, J. Reiss has been able to model the dynamics of a saxophone tone using neural networks. The author has been able to synthesize the saxophone signal using the trained network \cite{robelNeuralNetworkModeling1997}. Hence it's been shown in the literature that modeling the dynamics of the sound of a musical instrument is possible with neural networks. Later on in 2018, Cheng et al. have built a generative \gls{RNN} (Recurrent Neural Network) model to capture dynamics of musical works  \cite{tian_cheng_comparing_2018}. Although the network has been able to synthesize the musical works, direct comparison of modeled dynamics using cosine similarity has not yielded meaningful results. The authors have not made any attempts to apply feature extraction techniques on the modeled dynamics. Hence there is more work to be done before coming to a conclusion about the utility of complex dynamics of musical works in the task of music similarity measurement.
 
 
 \subsection{Problem Statement}
 
 \par
-The complex dynamics of musical works are determined by many intrinsic properties that can help to characterize musical works \cite{complex_dynamics}, and neural networks have the capacity to capture these dynamics of musical works \cite{robelNeuralNetworkModeling1996}\cite{dynamic_process_modeling_with_rnn}. Existing literature on audio and version identification tasks have not made attempts to measure similarity of musical performances using these dynamics. Hence this research will focus on building a similarity metric that can be used to measure similarity between musical performances using the complex dynamics of musical works, to help with audio and version identification tasks.
+Music, expressed through the propagation of sound waves is tightly bound to time. Prior works that has looked at music as an output of a dynamical system has successfully characterized between musical and non-musical sequences of notes using basic tools in dynamical systems theory \cite{complex_dynamics}. Neural networks have shown to contain the capacity to capture these dynamics of musical works through machine learning \cite{robelNeuralNetworkModeling1997,dynamic_process_modeling_with_rnn}. Existing literature on audio and version identification tasks have not made attempts to measure similarity of musical performances using these dynamics. Hence this research will focus on building a distance metric that can be used to measure similarity between musical performances using the complex dynamics of musical works, to help with audio and version identification tasks.
 
 
 
@@ -53,20 +53,19 @@ Moreover, attempts to characterize music using the dynamics of the musical works
 \normalsize
 \begin{enumerate}
   \item What approaches can be used to extract complex dynamics of music, to use with music similarity measurement?
-  \item What are the performance and robustness aspects of the identified approaches in the context of music similarity measurement?
+  \item What are the performance and robustness aspects of the identified approaches in music similarity measurement?
 \end{enumerate}
 
 \subsection{Project Aim}
-The aim of this project is to extract complex dynamics of musical works to improve Music Information Retrieval.
+The aim of this project is to extract complex dynamics of musical works and use them to improve performance of tasks in Music Information Retrieval.
 
 
 \subsection{Objectives}
 \begin{itemize}
   \item Explore and identify approaches that can be used to model the dynamics of dynamical systems
-  \item Explore and identify approaches that can be used to extract meaningful information from the captured dynamics
+  \item Explore and identify approaches that can be used to extract information from the captured dynamics to be used with similarity measurement
   \item Design, develop and evaluate different feature extraction mechanisms based on the identified approaches to conduct similarity measurement
   \item Evaluate the robustness of developed feature extraction mechanisms in audio identification task
-  \item Evaluate the robustness of developed feature extraction mechanisms in version identification task
 \end{itemize}
 
 
@@ -74,29 +73,13 @@ The aim of this project is to extract complex dynamics of musical works to impro
 \subsection{Methodology}
 
 \par
-This section discusses the selection of research methodology.
+This research will use existing theories and knowledge in \gls{MIR}, machine-learning, and time-series analysis domains to design and build a distance metric that operates on the complex dynamics captured from musical works with machine learning, to perform music identification and version identification tasks. Hence a deductive approach will be taken. Multiple experiments will be conducted during the process of building the distance metric.
 
-\subsubsection{Research Philosophy}
-\textbf{Positivism} was selected as the research philosophy, among other philosophies such as realism, interpretivism, and pragmatism. Since this research is going to be based on numerical scores (Eg: hit-rate, \gls{MR1}, \gls{MAP}), and numerical comparison between existing works, positivism is well suited for the proposed research.
+\par
+Publicly available datasets such as Covers80, Da-TACOS, and FMA will be used to conduct the experiments and evaluate results \cite{Covers80CoverSong,yesilerDaTACOSDatasetCover2019,defferrardFMADatasetMusic2017}. The data will comprise of audio files, metadata, and pre-extracted features such as crema-PCP \cite{mcfeeStructuredTrainingLargevocabulary2017}. Hence all data will be quantitative, and cross-sectional in nature.
 
-\subsubsection{Research Approach}
-This research uses existing theories and knowledge in \gls{MIR}, machine-learning, and time-series analysis domains to build a new similarity measure for music identification and version identification tasks. Hence a \textbf{deductive approach} is used throughout the research.
-
-\subsubsection{Methodological Choice}
-write.
-
-
-\subsubsection{Research Strategy}
-This research is carried out by running conducting multiple experiments and evaluating their results based on theories and knowledge found in the domain. Hence the research strategy is the conduct of \textbf{experiments}.
-
-
-\subsubsection{Time Horizon}
-The data required for the experiments in this research comprise of audio files of musical works, metadata such as the title, and pre-extracted features about musical works collected from publicly available secondary data sources. Hence there is no requirement to perform a longitudinal data collection. Therefore the time-horizon in this research is \textbf{cross-sectional}.
-
-
-\subsubsection{Techniques and Procedures}
-write.
-
+\par
+Quantitative methods will be used to evaluate the performance of the experimental models developed during the research. Specifically, standard measures such as \gls{MAP}, \gls{MR1}, will be used. Robustness of the distance metric will be evaluated using data augmentations found in the literature such as pitch-shift, time-stretch, and noise.
 
 
 \iffalse
@@ -113,8 +96,7 @@ Furthermore, the dynamical properties have the potential to reveal patterns inhe
 
 \subsubsection{In-Scope}
 \begin{itemize}
-    \item Building a similarity metric that can be used for music identification
-    \item Building a similarity metric that can be used for version identification
+    \item Building a distance metric that can be used for music identification and version identification
 \end{itemize}
 
 \subsubsection{Out-of-Scope}
@@ -124,8 +106,12 @@ Furthermore, the dynamical properties have the potential to reveal patterns inhe
 \end{itemize}
 
 
+\newpage
 \subsection{Timeline}
-\begin{table}[h]
+
+Table \ref{tab:timeline} shows the expected timeline for the research.
+
+\begin{table}[H]
     \centering
     \resizebox{\textwidth}{!}{
     \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
@@ -140,7 +126,7 @@ Furthermore, the dynamical properties have the potential to reveal patterns inhe
         \hline
         Preliminary Experiments & & & x & x & x& o& &&&\\
         \hline
-        \makecell{Development and training of \\dynamical feature extractor} &&&&& x& o& o& o& & \\
+        \makecell{Development and training of \\dynamical feature extractor} &&&&&& o& o& o& & \\
         \hline
         \makecell{Evaluating results and \\ conducting comparison study} &&&&&&&& o& o& \\
         \hline
@@ -149,7 +135,7 @@ Furthermore, the dynamical properties have the potential to reveal patterns inhe
     \end{tabular}
     }
     \caption{Expected Timeline}
-    \label{tab:my_label}
+    \label{tab:timeline}
 \end{table}
 
 \end{document}

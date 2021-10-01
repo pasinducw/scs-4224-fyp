@@ -10,10 +10,10 @@ In this section, existing literature is discussed under two topics. Firstly, a d
 \par
 Content-based audio retrieval is the task of retrieving audio using features extracted from the audio documents instead of relying solely on additional meta-data stored with the audio documents. Figure \ref{fig:retrieval-system} shows the typical architecture of a content-based audio retrieval system.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=8cm]{retrieval-system.png}
-    \caption{Typical architecture of a content-based audio retrieval system (self-composed)}
+    \caption{Typical architecture of a content-based audio retrieval system}
     \label{fig:retrieval-system}
 \end{figure}
 
@@ -28,11 +28,11 @@ Content-based audio retrieval systems can be categorized into 2 according to the
 The goal of an audio identification systems is to identify the performance corresponding to a query audio document. A typical use case of an audio identification system is in copyright monitoring systems in radio broadcasts. Lately, the use of audio identification systems have come to the use of general public with mobile applications such as Shazam\footnote{https://www.shazam.com} where you can use your phone to quickly identify a song that is being played around you. These audio identification systems are highly specific to the performances, and therefore are not capable of identifying different performances of a single song as the same. To keep this property, audio identification systems are made robust to variations such as background noise, signal distortions, and minute variations in speed and pitch that are not susceptible to the human ear.
 
 \par
-The main concept behind audio identification systems is audio fingerprinting. Here, fingerprints are created for small segments of audio clips and then the fingerprints are  used to query and find results. Over the last two decades, various strategies have been proposed in the literature to create audio fingerprints from audio documents. Early on, the fingerprints were created by applying the domain knowledge in music and signal processing concepts into fingerprint extraction algorithms  \cite{haitsmaHighlyRobustAudio}\cite{wangIndustrialStrengthAudio2003}\cite{ellisEchoPrintOpenSource2011}\cite{miroMASKRobustLocal2012}\cite{sixPanakoScalableAcoustic2014}. Then there have been attempts to incorporate computer vision based feature extraction techniques such as Scale Invariant Feature Transform to extract fingerprints from audio documents \cite{computer_vision_for_music_identification}\cite{sift}. In recent publications, the focus has shifted into extracting fingerprints using the power of machine-learning techniques \cite{arcas_now_2017}\cite{baez_suarez_unsupervised_2020}\cite{yu_contrastive_2020}. Compared to the earlier works that do not use machine learning to extract fingerprints, these newer techniques demonstrate better performance in robustness to distortions present in the query audio documents. 
+The main concept behind audio identification systems is audio fingerprinting. Here, fingerprints are created for small segments of audio clips and then the fingerprints are  used to query and find results. Over the last two decades, various strategies have been proposed in the literature to create audio fingerprints from audio documents. Early on, the fingerprints were created by applying the domain knowledge in music and signal processing concepts into fingerprint extraction algorithms  \cite{haitsmaHighlyRobustAudio2002,wangIndustrialStrengthAudio2003,ellisEchoPrintOpenSource2011,miroMASKRobustLocal2012,sixPanakoScalableAcoustic2014}. Then there have been attempts to incorporate computer vision based feature extraction techniques such as Scale Invariant Feature Transform to extract fingerprints from audio documents \cite{computer_vision_for_music_identification,sift}. In recent publications, the focus has shifted into extracting fingerprints using the power of machine-learning techniques \cite{arcas_now_2017,baez_suarez_unsupervised_2020,yu_contrastive_2020}. Compared to the earlier works that do not use machine learning to extract fingerprints, these newer techniques demonstrate better performance in robustness to distortions present in the query audio documents. 
 \\
 \par
 Version identification systems on the other hand, are less specific to the individual performances, and attempt to be capture the original works behind those performances \cite{serraAudioCoverSong2010}. Figure \ref{fig:versions} depicts the concept of versions \cite{book}.
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{versions.png}
     \caption{Examples of different versions of the painting "Mona Lisa" by Leonardo da Vinci}
@@ -72,7 +72,7 @@ A version can differ from the original work in many ways, possibly including cha
 \end{table}
 
 \par
-The publications present in literature during the last two decades employ two major concepts to identify versions. The first concept is finding alignments between two performances (query and reference performance), using cross-similarity matrices \cite{gomezSongRemainsSame2006}\cite{footeARTHURRetrievingOrchestral}\cite{serraChromaBinarySimilarity2008}\cite{serraCrossRecurrenceQuantification2009}\cite{jiang_yang_chen_2020}. The second concept is generating hashes (embeddings) that can be directly used to query on a reference database with a simple distance metric \cite{dorasCoverDetectionUsing2019}\cite{yeSupervisedDeepHashing2019b}\cite{yuTemporalPyramidPooling2019}\cite{yesilerAccurateScalableVersion2020}\cite{yesilerLessMoreFaster2020}. The first concept is the one that is widely found on literature, and the earlier works relying on alignments operate on handcrafted algorithms backed by the domain knowledge in music, time-series analysis and signal processing \cite{gomezSongRemainsSame2006}\cite{footeARTHURRetrievingOrchestral}\cite{serraChromaBinarySimilarity2008}\cite{serraCrossRecurrenceQuantification2009}. More recent publications that rely on alignments use machine learning, often \gls{CNN} architectures to carry out the end-to-end pipeline of deriving similarity scores for two performances \cite{jiang_yang_chen_2020}. Recent hashing-based systems use deep learning techniques to identify versions, and have been found to outperform the traditional alignment-based systems in terms of both accuracy and speed \cite{dorasCoverDetectionUsing2019}\cite{yeSupervisedDeepHashing2019b}\cite{yuTemporalPyramidPooling2019}\cite{yesilerAccurateScalableVersion2020}\cite{yesilerLessMoreFaster2020}. But the state-of-the-art performance in terms of accuracy is held by the alignment-based system proposed by Jiang et al. \cite{jiang_yang_chen_2020}
+The publications present in literature during the last two decades employ two major concepts to identify versions. The first concept is finding alignments between two performances (query and reference performance), using cross-similarity matrices \cite{gomezSongRemainsSame2006,footeARTHURRetrievingOrchestral2000,serraChromaBinarySimilarity2008,serraCrossRecurrenceQuantification2009,jiang_yang_chen_2020}. The second concept is generating hashes (embeddings) that can be directly used to query on a reference database with a simple distance metric \cite{dorasCoverDetectionUsing2019,yeSupervisedDeepHashing2019b,yuTemporalPyramidPooling2019,yesilerAccurateScalableVersion2020,yesilerLessMoreFaster2020}. The first concept is the one that is widely found on literature, and the earlier works relying on alignments operate on handcrafted algorithms backed by the domain knowledge in music, time-series analysis and signal processing \cite{gomezSongRemainsSame2006,footeARTHURRetrievingOrchestral2000,serraChromaBinarySimilarity2008,serraCrossRecurrenceQuantification2009}. More recent publications that rely on alignments use machine learning, often \gls{CNN} architectures to carry out the end-to-end pipeline of deriving similarity scores for two performances \cite{jiang_yang_chen_2020}. Recent hashing-based systems use deep learning techniques to identify versions, and have been found to outperform the traditional alignment-based systems in terms of both accuracy and speed \cite{dorasCoverDetectionUsing2019,yeSupervisedDeepHashing2019b,yuTemporalPyramidPooling2019,yesilerAccurateScalableVersion2020,yesilerLessMoreFaster2020}. But the state-of-the-art performance in terms of accuracy is held by the alignment-based system proposed by Jiang et al. \cite{jiang_yang_chen_2020}
 
 \par
 While the two categories of systems rely on different strategies to get the task done, some aspects are shared between both systems. These systems work on the audio representations, rather than the symbolic representations of music. Audio is stored in digital media as a quantized discrete time signal. Although this representation is good for producing sound through speakers, extracting information at this state for the two tasks on hand is rather difficult. Hence raw audio data is converted from time domain to the frequency domain. The basis here is Short-time Fourier transform (\Gls{STFT}).  \Gls{STFT} algorithm can be used to extract information from discrete waveforms in specified time and frequency resolutions. Content-based Audio Retrieval Systems use \gls{STFT} spectrograms or higher level representations of audio documents as the inputs.
@@ -80,7 +80,7 @@ While the two categories of systems rely on different strategies to get the task
 \iffalse
 Figure \ref{fig:representations} shows some of these representations \cite{book}.
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=9cm]{representations.png}
     \caption{Various representations for a recording of the chromatic scale played on a real piano. (a) Piano keys representing the chromatic scale. (b) Magnitude spectrogram. (c) Pitch-based log-frequency spectrogram. (d) Chromagram.}
@@ -90,10 +90,10 @@ Figure \ref{fig:representations} shows some of these representations \cite{book}
 
 
 \par
-Audio fingerprinting systems need to be able to discriminate between different performances even if they refer to the same song. Therefore, most of the works use \gls{STFT} itself with thresholding strategies to build invariance to noise \cite{haitsmaHighlyRobustAudio}\cite{sift}\cite{ellisEchoPrintOpenSource2011}\cite{wangIndustrialStrengthAudio2003} \cite{computer_vision_for_music_identification}. Mel-spectrograms are a variant obtained from \gls{STFT}, that uses a logarithmic frequency scale that resembles the human auditory system which has been used by recently published audio fingerprinting systems \cite{yu_contrastive_2020}\cite{baez_suarez_unsupervised_2020}. But version identification systems need to have timbre invariant representations, hence they use chroma-based feature representations such as \gls{HPCP} (Harmonic Pitch Class Profiles) \cite{gomezSongRemainsSame2006}\cite{serraChromaBinarySimilarity2008}\cite{serraCrossRecurrenceQuantification2009}\cite{yesilerAccurateScalableVersion2020}, and Constant-Q Transform (\gls{CQT}) coefficients \cite{yuTemporalPyramidPooling2019}\cite{dorasCoverDetectionUsing2019}\cite{jiang_yang_chen_2020}.
+Audio fingerprinting systems need to be able to discriminate between different performances even if they refer to the same song. Therefore, most of the works use \gls{STFT} itself with thresholding strategies to build invariance to noise \cite{haitsmaHighlyRobustAudio2002,sift,ellisEchoPrintOpenSource2011,wangIndustrialStrengthAudio2003,computer_vision_for_music_identification}. Mel-spectrograms are a variant obtained from \gls{STFT}, that uses a logarithmic frequency scale that resembles the human auditory system which has been used by recently published audio fingerprinting systems \cite{yu_contrastive_2020,baez_suarez_unsupervised_2020}. But version identification systems need to have timbre invariant representations, hence they use chroma-based feature representations such as \gls{HPCP} (Harmonic Pitch Class Profiles) \cite{gomezSongRemainsSame2006,serraChromaBinarySimilarity2008,serraCrossRecurrenceQuantification2009,yesilerAccurateScalableVersion2020}, and Constant-Q Transform (\gls{CQT}) coefficients \cite{yuTemporalPyramidPooling2019,dorasCoverDetectionUsing2019,jiang_yang_chen_2020}.
 
 \par
-While the earlier works use handcrafted features, modern works use machine-learning techniques to automatically engineer features from data itself \cite{arcas_now_2017}\cite{yuTemporalPyramidPooling2019}\cite{baez_suarez_unsupervised_2020}\cite{yu_contrastive_2020}\cite{dorasCoverDetectionUsing2019}\cite{jiang_yang_chen_2020}\cite{yesilerAccurateScalableVersion2020}\cite{yesilerLessMoreFaster2020}\cite{yeSupervisedDeepHashing2019b}\cite{yuTemporalPyramidPooling2019}. In this aspect, \gls{CNN}-based architectures are widely employed because the input transformations discussed earlier makes it possible to treat musical works as images. \gls{CNN}s are powerful networks to extract local features from images but the long-term relationships in musical works are unlikely to be captured using the power of \gls{CNN} alone \cite{yesilerAccurateScalableVersion2020}. \gls{RNN}-based models that are more capable of capturing long-term dependencies also appear in literature of both audio identification \cite{baez_suarez_unsupervised_2020} and version identification \cite{yeSupervisedDeepHashing2019b}, but have been superseded by models that use \gls{CNN}-based architectures to extract features. A reason for this could be because innovations in \gls{CNN} architectures are evolving at a rapid phase because of its applications in computer-vision domain, which is right now the perfect candidate for deep learning, while \gls{RNN}-based architectures haven't received innovations after the introduction of "Attention" concept for time-series modeling \cite{vaswaniAttentionAllYou2017}.
+While the earlier works use handcrafted features, modern works use machine-learning techniques to automatically engineer features from data itself \cite{arcas_now_2017,yuTemporalPyramidPooling2019,baez_suarez_unsupervised_2020,yu_contrastive_2020,dorasCoverDetectionUsing2019,jiang_yang_chen_2020,yesilerAccurateScalableVersion2020,yesilerLessMoreFaster2020,yeSupervisedDeepHashing2019b,yuTemporalPyramidPooling2019}. In this aspect, \gls{CNN}-based architectures are widely employed because the input transformations discussed earlier makes it possible to treat musical works as images. \gls{CNN}s are powerful networks to extract local features from images but the long-term relationships in musical works are unlikely to be captured using the power of \gls{CNN} alone \cite{yesilerAccurateScalableVersion2020}. \gls{RNN}-based models that are more capable of capturing long-term dependencies also appear in literature of both audio identification \cite{baez_suarez_unsupervised_2020} and version identification \cite{yeSupervisedDeepHashing2019b}, but have been superseded by models that use \gls{CNN}-based architectures to extract features. A reason for this could be because innovations in \gls{CNN} architectures are evolving at a rapid phase because of its applications in computer-vision domain, which is right now the perfect candidate for deep learning, while \gls{RNN}-based architectures haven't received innovations after the introduction of "Attention" concept for time-series modeling \cite{vaswaniAttentionAllYou2017}.
 
 \subsubsection{Music and Dynamical Systems}
 
@@ -104,22 +104,67 @@ Music is a manifestation of an intellectual process. The listeners of music hear
 Studies that attempted to see and analyze music in a perspective of dynamical systems modeling goes back over three decades. Boon et al. have attempted to characterize musical works by using phase portraits, and entropy \cite{complex_dynamics}. A phase portrait shows the trajectory of the system in phase space (phase trajectory). It is a representative of the dynamics of the particular system. In the study,  authors show that musical works are composed of complex dynamics that lie between deterministic dynamics and random dynamics. The study is further extended later on by the same authors\cite{boonDynamicalSystemsTheory1995}, where they apply the same analysis techniques to a larger corpus of works. The authors have not been able to identify any obvious clustering of the works by composer or by period of composition with the applied techniques. A comment by the authors is that the analysis is too simple to extract more detailed information about musical works. In the more recent literature, there have been a few works that attempt to automatically build representations for dynamics of musical works using machine learning techniques.
 
 \par
-A. Robel has introduced a feed-forward neural network architecture that is capable of learning the dynamics of a saxophone signal \cite{robelNeuralNetworkModeling}. The author has demonstrated that the network is capable of synthesizing saxophone signals using the learnt dynamics. Recently, the work done by Cheng et al. attempts to compare melodic similarity of songs using \gls{RNN} parameters \cite{tian_cheng_comparing_2018}. In their work, the authors propose a generative \gls{RNN} architecture that learns the dynamics of  musical performances. Authors have used a dataset consisting of popular Japanese songs (available as MIDI files). Each song is arranged as a single-variable time series, chunked into overlapped segments and fed into the network. Starting from a common initial-state, the network is overfitted to every single performance individually. Once the network is capable of generating the performance on its own, the network parameters are extracted and used for the similarity measurement. However, the direct comparison of network parameters using cosine similarity has not yielded promising results. A major gap in this study is that the authors have not attempted to extend the pipeline to extract meaningful data that support similarity measurement.
+A. Robel has introduced a feed-forward neural network architecture that is capable of learning the dynamics of a saxophone signal \cite{robelNeuralNetworkModeling1997}. The author has demonstrated that the network is capable of synthesizing saxophone signals using the learnt dynamics. Recently, the work done by Cheng et al. attempts to compare melodic similarity of songs using \gls{RNN} parameters \cite{tian_cheng_comparing_2018}. In their work, the authors propose a generative \gls{RNN} architecture that learns the dynamics of  musical performances. Authors have used a dataset consisting of popular Japanese songs (available as MIDI files). Each song is arranged as a single-variable time series, chunked into overlapped segments and fed into the network. Starting from a common initial-state, the network is overfitted to every single performance individually. Once the network is capable of generating the performance on its own, the network parameters are extracted and used for the similarity measurement. However, the direct comparison of network parameters using cosine similarity has not yielded promising results. A major gap in this study is that the authors have not attempted to extend the pipeline to extract meaningful data that support similarity measurement.
 
 \subsubsection{Conclusion}
 \par
-The literature that is currently available for music and version identification has not made any attempts to see music in the perspective of a dynamical system. The literature that has studied about music in this perspective has not been able to characterize musical works in the past due to the unavailability of advanced techniques to model dynamics. More recent literature in this area has failed to comprehensively make use of the advanced techniques such as energy-based self-supervised learning to extract useful information.
+The literature that is currently available for music and version identification has not made any attempts to see music in the perspective of a dynamical system. The literature that has studied about music in this perspective has not been able to characterize musical works in the past due to the unavailability of advanced techniques to model dynamics. More recent literature in this area has not made a comprehensive use of the modern machine learning techniques.
 
 \subsection{Research Design}
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{research-design.jpeg}
-    \caption{Research Design}
+    \includegraphics[width=\linewidth]{research-design.png}
+    \caption{High-level diagram of the research design}
     \label{fig:research-design}
 \end{figure}
 
-WRITE
+\textbf{Step 1 - Obtain Raw Datasets}
+\par
+Obtain the datasets that will be used for the evaluation.
+
+\textbf{Step 2 - Data Augmentation}
+\par
+Augment the data with minor transformations such as changes in pitch, time, and addition of noise.
+
+\textbf{Step 3 - Preprocess the Datasets}
+\par
+Apply necessary transformations to the raw audio files to obtain frequency-time representations.
+
+\textbf{Step 4 - Experiment on quality of preprocessed features}
+\par
+Experiment on the quality of features where possible by implementing inverse transformations and converting features back into original audio files.
+
+\textbf{Step 5 - Implement baseline models for similarity measurement}
+\par
+Implement baseline models identified from the literature.
+
+\textbf{Step 6 - Evaluate performance of baseline models}
+\par
+Evaluate the performance of baseline models in audio identification and version identification tasks using standard metrics.
+
+
+\textbf{Step 7 - Identify techniques to model dynamics of musical works}
+\par
+Identify techniques that can be used to capture the dynamics of musical works into neural networks.
+
+\textbf{Step 8 - Identify techniques to extract information from dynamics to conduct similarity measurement}
+\par
+Identify techniques that can be used to extract information out of the modelled dynamics, to use with similarity measurement.
+
+\textbf{Step 9 - Implement new models to conduct similarity measurement}
+\par
+Implement models with identified techniques.
+
+
+\textbf{Step 10 - Evaluate performance of new models}
+\par
+Evaluate the performance of newly implemented models in audio identification and version identification tasks using standard metrics. Repeat from step 8 until satisfactory performance is obtained
+
+
+\textbf{Step 11 - Conclude}
+\par
+Present the identified approaches of extracting complex dynamics of musical works to conduct music similarity, their performance, and robustness aspects.
 
 \newpage
 \subsection{Preliminary Results}
@@ -128,7 +173,7 @@ WRITE
 A major concept used in this research is the usage of \gls{RNN} models to capture the dynamics of musical works. The first research that attempted this task has been conducted on symbolic representations of music, from MIDI files \cite{tian_cheng_comparing_2018}. Symbolic representations are purest form of representing musical works. But music identification and version identification tasks operate on the audio domain where the data is not pure as such. In the audio domain, the sound of instruments, vocals of singers, noise from instruments, artefacts due to different encodings, all get combined into a single waveform. Hence the preliminary experiments conducted to attempt to translate the work done on the symbolic domain of music, into the audio domain.
 
 \par
-All experiments were done using the Covers80\cite{Covers80CoverSon} dataset and few simple performances created by myself using an electric-piano.
+All experiments were done using the Covers80\cite{Covers80CoverSong} dataset and few simple performances created by myself using an electric-piano.
 
 \subsubsection{Transforming audio waveforms with CQT}
 
@@ -138,15 +183,15 @@ The raw audio sequence was transformed using \gls{CQT} (number of frequency-bins
 \par
 With the addition of vocals (in performances from Covers80 dataset), high-frequency noise was introduced to the thresholded sequence. Hence, amplitudes in top 36 frequency-bins were brought down to zero before applying the thresholding operation.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{preliminary-results/badinerie.png}
-    \caption{(a) Constant-Q Transform of Badinerie Suite in B-minor played on piano (b) Constant-Q Transform of Badinerie Suite in B-minor thresholded to retain only the highest K amplitude frequency-bins at each frame (K=1 here) }
+    \caption{Constant-Q Transform of Badinerie Suite in B-minor played on piano (a) without change (b) thresholded to retain only the K highest amplitude frequency-bins at each frame (K=1) }
     \label{fig:badinerie}
 \end{figure}
 
 \iffalse
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=8cm]{preliminary-results/c-major-scale.png}
     \caption{Constant-Q Transform of ascending and descending the C-major scale, thresholded to retain only the highest K amplitude frequency-bins at each frame (K=1 here) }
@@ -159,7 +204,7 @@ With the addition of vocals (in performances from Covers80 dataset), high-freque
 \subsubsection{Generative RNN Model 1}
 
 \par
-The attempt was to build a regression model that would predict amplitudes of 48 frequency-bins of the next frame, when given with 168 earlier frames (corresponding to ~2 seconds). Figure \ref{fig:exp1-architecture} shows the model architecture. The frames were thresholded at K=10. The ability of the model to learn the sequence was tested by using a single performance, but the results were not promising. The did not overfit to the musical sequence, and plateaued at a very high loss level.
+The attempt was to build a regression model that would predict amplitudes of 48 frequency-bins of the next frame, when given with 168 earlier frames (corresponding to 1.95 seconds). Figure \ref{fig:exp1-architecture} shows the model architecture. The frames were thresholded at K=10. The ability of the model to learn the sequence was tested by using a single performance, but the results were not promising. The did not overfit to the musical sequence, and plateaued at a very high loss level.
 
 \iffalse
  Figure \ref{fig:exp1-performance} shows the model loss when trained for 500 epochs.
@@ -177,7 +222,7 @@ Different variations on the network architecture were attempted to see the effec
 
 
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{preliminary-results/exp1/exp1-architecture.png}
     \caption{Generative RNN Model 1 - Architecture}
@@ -186,7 +231,7 @@ Different variations on the network architecture were attempted to see the effec
 
 
 \iffalse
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=8cm]{preliminary-results/exp1/exp1-performance.png}
     \caption{Generative RNN Model 1 - Performance}
@@ -202,7 +247,7 @@ The approach to build the generative RNN changed from regression to classificati
 Figure \ref{fig:exp10-performance} shows the model loss when trained for 500 epochs.
 \fi
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{preliminary-results/exp10/exp10-architecture.png}
     \caption{Generative RNN Model 2 - Architecture}
@@ -210,7 +255,7 @@ Figure \ref{fig:exp10-performance} shows the model loss when trained for 500 epo
 \end{figure}
 
 \iffalse
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=8cm]{preliminary-results/exp10/exp10-performance.png}
     \caption{Generative RNN Model 2 - Performance}
@@ -226,7 +271,7 @@ Since the model was capable of overfitting to a single performance with closer t
 \par
 Covers80 dataset, which contains 80 songs with two performances per song (two versions of same song done by two artists), augmented with 17 augmentations (in pitch, and speed) for each performance was used to pretrain the model. Figure \ref{fig:exp12-performance} shows the model loss when trained for 404 epochs. 
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=8cm]{preliminary-results/exp12/exp12-performance.png}
     \caption{Generative RNN Model 2 - Performance when trained with covers80 dataset + augmentations}
@@ -234,17 +279,17 @@ Covers80 dataset, which contains 80 songs with two performances per song (two ve
 \end{figure}
 
 \par
-Considering the variation between the training loss and validation loss, the model seems to stop learning general patterns beyond epoch 165 [GET THE CORRECT ONE]. Furthermore, the training loss curve seems to be headed down without any sign of plateauing. Hence, this could be a sign that the model could be simplified further. Therefore this aspect needs to be tested with more experiments.
+Considering the variation between the training loss and validation loss, the model validation loss hit it's minimum at epoch 178 and started increasing. Furthermore, the training loss curve was headed down without any deceleration. Hence, this could be a sign that the model could be further simplified. Therefore this aspect needs to be tested with more experiments.
 
 
 
 \subsubsection{Overfitting individual performances to pretrained model}
 
 \par
-Next step in the pipeline is overfitting individual performances to the pretrained model. This step was done to all the performances in Covers80 dataset. Parameters of the model with least validation loss in the first 200 epochs from the pretraining experiment was used as the initial parameters. In total, 160 models were trained for 200 epochs each, for each of the performances on Covers80 dataset. Figure \ref{fig:exp14-performance} shows the model loss in 3 randomly selected performances. The first 200 epochs in the figure corresponds to the pretraining loss. Latter 200 epochs correspond to the training phase with individual performances. The average loss at the 200th epoch was [INSERT THE VALUE], and the average predicting accuracy was [INSERT THE VALUE].
+Next step in the pipeline is overfitting individual performances to the pretrained model. This step was done to all the performances in Covers80 dataset. Parameters of the model with least validation loss in the first 200 epochs from the pretraining experiment was used as the initial parameters. In total, 160 models were trained for 200 epochs each, for each of the performances on Covers80 dataset. Figure \ref{fig:exp14-performance} shows the model loss in 3 randomly selected performances. The first 200 epochs in the figure corresponds to the pretraining loss. Latter 200 epochs correspond to the training phase with individual performances. The average loss at the 200th epoch was 0.525, and the average predicting accuracy was 95.94\%.
 
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{preliminary-results/exp14/exp14-individual-losses.png}
     \caption{Model loss for 3 randomly selected performances}
@@ -257,7 +302,7 @@ Next step in the pipeline is overfitting individual performances to the pretrain
 \par
 For each musical performance, there is a vector with 49,968 attributes coming from the overfitted \gls{RNN} parameters. The similarity between musical performances was tested by measuring the cosine distance between two such vectors, for each pair of performances. After the similarity computation, rank of the first correctly identified performance based on the similarity score was calculated. Figure \ref{fig:exp14-r1-distribution} shows the distribution of the ranks. Based on the ranks, the \gls{MR1} score of this method is 10.043. To put in comparison, \gls{MR1} score of the current state-of-the-art version identification system \cite{jiang_yang_chen_2020} on Covers80 dataset is 3.85.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=8cm]{preliminary-results/exp14/exp14-r1-distribution.png}
     \caption{Rank of 1 Distribution of musical performances in Covers80 dataset based on RNN parameters}
