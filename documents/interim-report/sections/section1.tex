@@ -5,10 +5,10 @@
 \subsection{Introduction}
 
 \par
-Rapidly growing corpus of digital music content requires novel technologies to allow consumers to interact and owners to benefit from such content. Music Information Retrieval (\gls{MIR}) refers to the domain of tasks that organize music-related information, and make them accessible and useful. Content-based audio retrieval is a sub-domain of \gls{MIR}. Content-based audio retrieval systems respond to queries of users by using information extracted from raw musical works (audio files, musical scores, MIDI files etc.) instead of relying on manually fed metadata (Eg: title, genre, composer). Audio identification and version identification are two sub-tasks that come under content-based audio retrieval tasks \cite{book}.
+Rapidly growing corpus of digital music content requires novel technologies to allow consumers to interact and owners to benefit from such content. Music Information Retrieval (\gls{MIR}) refers to the domain of tasks that organize music-related information, and make them accessible and useful. Content-based audio retrieval is a sub-domain of \gls{MIR}. Content-based audio retrieval systems respond to queries of users by using information extracted from raw musical works (audio files, musical scores, \gls{MIDI} files etc.) instead of relying on manually fed metadata (Eg: title, genre, composer). Audio identification and version identification are two sub-tasks that come under content-based audio retrieval tasks \cite{book}.
 
 \par
-Both audio identification and version identification tasks expect the systems to respond user queries with similar musical documents present in the system database. Difference in these two types of tasks lie in their specificity. Audio identification expects the system to return audio documents that perceptually sound the same to a user. Good audio identification systems are robust to deformations such as compression artefacts introduced in different types of encoding systems, noise introduced during transmission, and unnoticeable changes in frequency and speed \cite{book}. Version identification systems are expected to retrieve musical works that are "musically similar" \cite{serraAudioCoverSong2010}. Good version identification systems have to be able to identify different performances of the same song (Eg: cover songs of an original song) as referring to the same musical work). Both of these tasks rely on a metric that can measure the similarity of a query audio to a set of audios on a reference database. Over the past few decades, people have experimented and built such metrics that have been incorporated into audio and version identification systems.
+Both audio identification and version identification tasks expect the systems to respond user queries with similar musical documents present in the system database. Difference in these two types of tasks lie in their specificity. Audio identification expects the system to return audio documents that perceptually sound the same to a user. Good audio identification systems are robust to deformations such as compression artefacts introduced in different types of encoding systems, noise introduced during transmission, and unnoticeable changes in frequency and speed \cite{book}. Version identification systems are expected to retrieve musical works that are “musically similar” \cite{serraAudioCoverSong2010}. Good version identification systems have to be able to identify different performances of the same song (Eg: cover songs of an original song) as referring to the same musical work). Both of these tasks rely on a metric that can measure the similarity of a query audio to a set of audios on a reference database. Over the past few decades, people have experimented and built such metrics that have been incorporated into audio and version identification systems.
 
 \par
 These audio and version identification systems operate on digital representations of audio, available as discrete waveforms. However, directly operating on these waveforms is not feasible due to the high dimensionality (Music files are usually encoded at 44.1kHz resulting in 44,100 frames per second). Hence, transformations are applied to the waveforms to convert them to frequency-time representations. Starting from this base, different systems apply various transformations to the audio representations  and finally perform calculations between the query and reference audio representations to compute the similarity scores. However, among these transformations there is an area that has not yet been explored. That is the consideration of the audio waves of musical works as readings taken from a dynamical system \cite{complex_dynamics}, and using the dynamics of the individual dynamical systems to characterize and compare between different musical works. The goal of this research is to fill that gap.
@@ -29,7 +29,7 @@ In 1990, Boon et al. put forward a new way to analyze musical works. That is con
 \end{figure}
 
 \par
-In 1996, J. Reiss has been able to model the dynamics of a saxophone tone using neural networks. The author has been able to synthesize the saxophone signal using the trained network \cite{robelNeuralNetworkModeling1997}. Hence it's been shown in the literature that modeling the dynamics of the sound of a musical instrument is possible with neural networks. Later on in 2018, Cheng et al. have built a generative \gls{RNN} (Recurrent Neural Network) model to capture dynamics of musical works  \cite{tian_cheng_comparing_2018}. Although the network has been able to synthesize the musical works, direct comparison of modeled dynamics using cosine similarity has not yielded meaningful results. The authors have not made any attempts to apply feature extraction techniques on the modeled dynamics. Hence there is more work to be done before coming to a conclusion about the utility of complex dynamics of musical works in the task of music similarity measurement.
+In 1996, J. Reiss has been able to model the dynamics of a saxophone tone using neural networks. The author has been able to synthesize the saxophone signal using the trained network \cite{robelNeuralNetworkModeling1997}. Hence it's been shown in the literature that modeling the dynamics of the sound of a musical instrument is possible with neural networks. Later on in 2018, Cheng et al. have built a generative Recurrent Neural Network (\gls{RNN}) model to capture dynamics of musical works  \cite{tian_cheng_comparing_2018}. Although the network has been able to synthesize the musical works, direct comparison of modeled dynamics using cosine similarity has not yielded meaningful results. The authors have not made any attempts to apply feature extraction techniques on the modeled dynamics. Hence there is more work to be done before coming to a conclusion about the utility of complex dynamics of musical works in the task of music similarity measurement.
 
 
 \subsection{Problem Statement}
@@ -76,7 +76,7 @@ The aim of this project is to extract complex dynamics of musical works and use 
 This research will use existing theories and knowledge in \gls{MIR}, machine-learning, and time-series analysis domains to design and build a distance metric that operates on the complex dynamics captured from musical works with machine learning, to perform music identification and version identification tasks. Hence a deductive approach will be taken. Multiple experiments will be conducted during the process of building the distance metric.
 
 \par
-Publicly available datasets such as Covers80, Da-TACOS, and FMA will be used to conduct the experiments and evaluate results \cite{Covers80CoverSong,yesilerDaTACOSDatasetCover2019,defferrardFMADatasetMusic2017}. The data will comprise of audio files, metadata, and pre-extracted features such as crema-PCP \cite{mcfeeStructuredTrainingLargevocabulary2017}. Hence all data will be quantitative, and cross-sectional in nature.
+Publicly available datasets such as Covers80, Da-TACOS, and FMA will be used to conduct the experiments and evaluate results \cite{Covers80CoverSong,yesilerDaTACOSDatasetCover2019,defferrardFMADatasetMusic2017}. The data obtained as such comprises of audio files, metadata, and pre-extracted features such as \gls{HPCP} (discussed in detail on Section 2). Hence all data will be quantitative, and cross-sectional in nature.
 
 \par
 Quantitative methods will be used to evaluate the performance of the experimental models developed during the research. Specifically, standard measures such as \gls{MAP}, \gls{MR1}, will be used. Robustness of the distance metric will be evaluated using data augmentations found in the literature such as pitch-shift, time-stretch, and noise.
@@ -109,7 +109,7 @@ Furthermore, the dynamical properties have the potential to reveal patterns inhe
 \newpage
 \subsection{Timeline}
 
-Table \ref{tab:timeline} shows the expected timeline for the research.
+Table \ref{tab:timeline} shows the expected timeline for the research. Symbol 'x' corresponds to already completed events, and symbol 'o' corresponds to pending events.
 
 \begin{table}[H]
     \centering
@@ -122,13 +122,13 @@ Table \ref{tab:timeline} shows the expected timeline for the research.
         \hline
         Literature Survey & & x & x & x & x & o & o & o & o & \\
         \hline
-        Dataset Preparation & & x & x & x &  & & o& o& & \\
+        Dataset Preparation & & & x & x &  & & o& o& & \\
         \hline
         Preliminary Experiments & & & x & x & x& o& &&&\\
         \hline
         \makecell{Development and training of \\dynamical feature extractor} &&&&&& o& o& o& & \\
         \hline
-        \makecell{Evaluating results and \\ conducting comparison study} &&&&&&&& o& o& \\
+        \makecell{Evaluating results} &&&&&&&& o& o& \\
         \hline
         Publication of research &&&&&&& o& o& o& o \\
         \hline

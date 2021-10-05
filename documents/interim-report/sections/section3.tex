@@ -5,7 +5,7 @@
 In order to answer the research questions, multiple neural networks will be built, trained, and tested on multiple datasets. Two different evaluation plans will be used for the two \gls{MIR} tasks.
 
 \subsubsection{Audio Identification Task}
-Audio files of the musical works are required to evaluate the performance with music identification task. Therefore the Covers80 dataset and FMA dataset will be used, because both the datasets are distributed along with the audio files \cite{Covers80CoverSong,defferrardFMADatasetMusic2017}. Multiple augmentations such as pitch-shift, time-stretch, noise-addition, and trimming, will be applied on the original audio files to prepare the query audio sequences. Performance in audio identification is measured in the literature using "hit-rate". Equation (1) shows the formula for hit-rate (HR) calculation where CQ is the number of correctly identified queries, and TQ is the total number of queries.
+Audio files of the musical works are required to evaluate the performance with music identification task. Therefore the Covers80 dataset and FMA dataset will be used, because both the datasets are distributed along with the audio files \cite{Covers80CoverSong,defferrardFMADatasetMusic2017}. Multiple augmentations such as pitch-shift, time-stretch, noise-addition, and trimming, will be applied on the original audio files to prepare the query audio sequences. Performance in audio identification is measured in the literature using “hit-rate”. Equation (1) shows the formula for hit-rate (HR) calculation where CQ is the number of correctly identified queries, and TQ is the total number of queries.
 
 \begin{equation}
     HR = 100 \times \frac{CQ}{TQ}
