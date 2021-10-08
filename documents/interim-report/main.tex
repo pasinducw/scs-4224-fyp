@@ -9,6 +9,15 @@
 \usepackage{makecell}
 \usepackage{array}
 \usepackage{subfiles}
+\usepackage{hyperref}
+\usepackage[font=small,labelfont=bf]{caption}
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
 
 \setlength{\parskip}{1em}
 
@@ -29,6 +38,8 @@
             
         \vspace{0.5cm}
         
+        \small
+        \textbf{Original Title: Extracting complex dynamics of music using non-linear feature extraction  techniques for music similarity measurement}
             
         \vspace{1.5cm}
         \Large
@@ -40,7 +51,7 @@
         \vspace{5mm} %5mm vertical space
         Supervisor: Prof. K.L. Jayarathne\\
         
-        Co-Supervisor: Dr. M.I.E Wickramasinghe\\
+        Co-Supervisor: Dr. M.I.E. Wickramasinghe\\
         \normalsize
 
         \vspace{1.5cm}
@@ -85,7 +96,7 @@ Supervisor
 \dotfill
 
 \large
-Dr. M.I.E Wickramasinghe\\
+Dr. M.I.E. Wickramasinghe\\
 Co-Supervisor
 
 \end{center}
@@ -93,19 +104,15 @@ Co-Supervisor
 \newpage
 
 
-
 \tableofcontents
-\listoftables
-\listoffigures
 
+\newpage
+\listoffigures
+\listoftables
+\newpage
 \printglossaries
 
 \newpage
-
-
-
-
-
 \pagenumbering{arabic}
 
 \section{Section One}
@@ -114,8 +121,8 @@ Co-Supervisor
 \newpage
 \section{Section Two}
 \subfile{sections/section2}
-\newpage
 
+\newpage
 \section{Section Three}
 \subfile{sections/section3}
 \newpage

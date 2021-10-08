@@ -176,7 +176,7 @@ A major concept used in this research is the usage of \gls{RNN} models to captur
 \par
 All experiments were done using the Covers80\cite{Covers80CoverSong} dataset and few simple performances created by the researcher himself using an electric-piano.
 
-\subsubsection{Transforming audio waveforms with CQT}
+\subsubsection{Transforming audio waveforms with \gls{CQT}}
 
 \par
 The raw audio sequence was transformed using \gls{CQT} (number of frequency-bins = 96, bins per octave = 12, hop length = 256), and a special thresholding was applied at each frame to keep the K highest amplitude frequency-bins. An inverse-\gls{CQT} operation was applied on the newly thresholded sequence to turn it back to raw audio, and the resulting audio was listened-on. This operation was initially tested on self-composed musical performances, and then repeated for randomly selected performances from the Covers80 dataset. Figure \ref{fig:badinerie} shows the effect of thresholding operation.
