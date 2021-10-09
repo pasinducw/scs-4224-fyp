@@ -19,6 +19,11 @@
     urlcolor=black
 }
 
+\usepackage[
+% silent,% suppress the warning
+% indentunnumbered% need unnumbered chapters to be indented in the toc?? 
+]{unnumberedtotoc}
+
 \setlength{\parskip}{1em}
 
 
@@ -116,15 +121,18 @@ Co-Supervisor
 \newpage
 \pagenumbering{arabic}
 
-\section{Section One}
+\addsec{Section One}
+\addtocounter{section}{1}
 \subfile{sections/section1}
 
 \newpage
-\section{Section Two}
+\addsec{Section Two}
+\addtocounter{section}{1}
 \subfile{sections/section2}
 
 \newpage
-\section{Section Three}
+\addsec{Section Three}
+\addtocounter{section}{1}
 \subfile{sections/section3}
 \newpage
 
