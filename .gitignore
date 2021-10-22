@@ -131,6 +131,7 @@ dmypy.json
 # Data
 data/*
 snapshots
+wandb
 model-snapshots
 
 # Mac OS specific file metadata
