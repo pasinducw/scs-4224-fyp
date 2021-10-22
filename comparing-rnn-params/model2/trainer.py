@@ -183,8 +183,7 @@ def main():
     args['time_axis'] = 1  # TODO: Change based on the feature type selected
     args['input_size'] = 84  # TODO: Change based on the feature type selected
 
-    wandb.init(project="my-test-project", entity="pasinducw")
-    wandb.config = args
+    wandb.init(project="my-test-project", entity="pasinducw", config= args)
 
     print("Arguments", args)
 
