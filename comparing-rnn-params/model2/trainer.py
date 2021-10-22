@@ -186,8 +186,7 @@ def main():
     if args['feature_type'] == 'crema':
         args['input_size'] = 12
 
-    wandb.init(project="my-test-project", entity="pasinducw")
-    wandb.config = args
+    wandb.init(project="my-test-project", entity="pasinducw", config= args)
 
     print("Arguments", args)
 
