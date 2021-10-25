@@ -179,7 +179,7 @@ def main():
     parser.add_argument('-z', '--snapshots_src', action="store", required=True,
                         help="directory to store model snapshots")
 
-    parser.add_argument('-m', '--model_snapshot', action="store", default=None,
+    parser.add_argument('-t', '--model_snapshot', action="store", default=None,
                         help="continue training from a previous snapshot")
 
     args = vars(parser.parse_args())
@@ -230,7 +230,7 @@ def main():
         state_dimension=int(args['state_dim']),
         learning_rate=float(args['learning_rate']),
         save_path=args['snapshots_src'],
-        model_snapshot=model_snapshot,
+        start_state=model_snapshot,
     )
 
 

@@ -13,8 +13,8 @@ class SimpleCache():
 
     def set(self, key, value):
         if self.entries_count == self.max_entries:
-            del self.cache[self.keys[-1]]
-            del self.keys[-1]
+            del self.cache[self.keys[0]]
+            del self.keys[0]
             self.entries_count -= 1
 
         self.cache[key] = value
