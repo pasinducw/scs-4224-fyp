@@ -179,6 +179,9 @@ def main():
     parser.add_argument('-z', '--snapshots_src', action="store", required=True,
                         help="directory to store model snapshots")
 
+    parser.add_argument('-m', '--model_snapshot', action="store", default=None,
+                        help="continue training from a previous snapshot")
+
     args = vars(parser.parse_args())
     args['time_axis'] = 1  # TODO: Change based on the feature type selected
     args['input_size'] = 84  # TODO: Change based on the feature type selected
@@ -186,7 +189,7 @@ def main():
     if args['feature_type'] == 'crema':
         args['input_size'] = 12
 
-    wandb.init(project="my-test-project", entity="pasinducw", config= args)
+    wandb.init(project="my-test-project", entity="pasinducw", config=args)
 
     print("Arguments", args)
 
@@ -212,6 +215,11 @@ def main():
     validation_dataloader = torch.utils.data.DataLoader(
         validation_dataset, batch_size=int(args['batch_size']), num_workers=int(args['workers']), shuffle=False)
 
+    if args['model_snapshot']:
+        model_snapshot = torch.load(args['model_snapshot'])
+    else:
+        model_snapshot = None
+
     device = torch.device(args['device'])
     train_model(
         train_dataset=train_dataloader,
@@ -221,7 +229,9 @@ def main():
         input_size=args['input_size'],
         state_dimension=int(args['state_dim']),
         learning_rate=float(args['learning_rate']),
-        save_path=args['snapshots_src'])
+        save_path=args['snapshots_src'],
+        model_snapshot=model_snapshot,
+    )
 
 
 if __name__ == "__main__":
