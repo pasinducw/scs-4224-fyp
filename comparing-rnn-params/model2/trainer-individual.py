@@ -29,21 +29,6 @@ def calculate_accuracy(predicted, expected):
             correct += 1.0
     return (correct / (predicted.shape[0]))
 
-
-def plot_progress(train: list, validation: list, progress_type: str, epoch: int, save_path: str):
-    x = [*range(1, len(train)+1)]
-    plt.clf()
-    plt.plot(x, train, label="Train {}".format(progress_type))
-    plt.plot(x, validation, label="Validation {}".format(progress_type))
-    plt.xlabel('Epoch')
-    plt.ylabel('{}'.format(progress_type))
-    plt.title("Model {} upto epoch {}".format(progress_type, epoch))
-    plt.legend()
-    path = os.path.join(
-        save_path, "model-performance-{}-{}.png".format(epoch, progress_type))
-    plt.savefig(os.path.join(path))
-
-
 def train_model(train_dataset, validation_dataset, epochs, device, input_size, state_dimension, learning_rate, save_path, start_state=None):
 
     model = Model(input_size=input_size,
@@ -127,25 +112,23 @@ def train_model(train_dataset, validation_dataset, epochs, device, input_size, s
             epoch, train_loss, validation_loss, train_accuracy, validation_accuracy))
         if not os.path.exists(save_path):
             os.makedirs(save_path)
-        torch.save({
-            "epoch": epoch,
-            "model_state_dict": model.state_dict(),
-            "optimizer_state_dict": optimizer.state_dict(),
-            "train_loss": train_loss,
-            "validation_loss": validation_loss,
-            "history": history,
-            "best_model_weights": best_model_weights,
-            "best_loss": best_loss
-        }, os.path.join(save_path, "snapshot-{}.pytorch".format(epoch)))
+        
+        if epoch % 5 == 0:
+            torch.save({
+                "epoch": epoch,
+                "model_state_dict": model.state_dict(),
+                "optimizer_state_dict": optimizer.state_dict(),
+                "train_loss": train_loss,
+                "validation_loss": validation_loss,
+                "history": history,
+                "best_model_weights": best_model_weights,
+                "best_loss": best_loss
+            }, os.path.join(save_path, "snapshot-{}.pytorch".format(epoch)))
 
         if validation_loss < best_loss:
             best_loss = validation_loss
             best_model_weights = copy.deepcopy(model.state_dict())
 
-        plot_progress(train=history['train'], validation=history['validation'],
-                      progress_type='Loss', epoch=epoch, save_path=save_path)
-        plot_progress(train=history['train_accuracy'], validation=history['validation_accuracy'],
-                      progress_type='Accuracy', epoch=epoch, save_path=save_path)
 
     return best_model_weights, history
 
@@ -153,6 +136,8 @@ def train_model(train_dataset, validation_dataset, epochs, device, input_size, s
 def work(args: map, performances: list, performance_index: int):
 
     work_id, track_id = performances[performance_index]
+
+    snapshot_path = os.path.join(args['snapshots_src'], work_id, track_id)
 
     # temp_dataset_meta_csv = tempfile.NamedTemporaryFile(delete=False)
     # temp_dataset_meta_csv.name
@@ -205,7 +190,7 @@ def work(args: map, performances: list, performance_index: int):
         input_size=args['input_size'],
         state_dimension=args['state_dim'],
         learning_rate=args['learning_rate'],
-        save_path=args['snapshots_src'],
+        save_path=snapshot_path,
         start_state=model_snapshot,
     )
 
