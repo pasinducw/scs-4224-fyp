@@ -227,6 +227,12 @@ def main():
     parser.add_argument('--wandb_project', action="store", default="my-test-project",
                         help="wandb project id")
 
+    parser.add_argument('--start_performance_index', action="store", default=0,
+                        help="starting performance index")
+
+    parser.add_argument('--end_performance_index', action="store", default=0,
+                        help="ending performance index (this is exclusive")
+
     args = vars(parser.parse_args())
     args['time_axis'] = 1  # TODO: Change based on the feature type selected
     args['input_size'] = 84  # TODO: Change based on the feature type selected
@@ -242,15 +248,12 @@ def main():
     args['learning_rate'] = float(args['learning_rate'])
     args['epochs'] = int(args['epochs'])
 
-    performances = pd.read_csv(args['meta_csv']).values.tolist()
-    with Pool(int(args.workers)) as p:
-        func = partial(
-            work,
-            args,
-            performances,
-        )
-        p.map(func, range(len(performances)))
+    args['start_performance_index'] = int(args['start_performance_index'])
+    args['end_performance_index'] = int(args['end_performance_index'])
 
+    performances = pd.read_csv(args['meta_csv']).values.tolist()
+    for index in range(args['start_performance_index'], args['end_performance_index']):
+        work(args, performances, index)
 
 if __name__ == "__main__":
     main()
