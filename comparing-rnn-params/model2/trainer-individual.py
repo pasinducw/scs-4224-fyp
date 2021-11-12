@@ -2,6 +2,8 @@ import copy
 import math
 import os
 import tempfile
+from multiprocessing import Pool
+from functools import partial
 
 import torch
 from torch.utils.data import DataLoader
@@ -28,6 +30,7 @@ def calculate_accuracy(predicted, expected):
         if expected[step] == index:
             correct += 1.0
     return (correct / (predicted.shape[0]))
+
 
 def train_model(train_dataset, validation_dataset, epochs, device, input_size, state_dimension, learning_rate, save_path, start_state=None):
 
@@ -112,7 +115,7 @@ def train_model(train_dataset, validation_dataset, epochs, device, input_size, s
             epoch, train_loss, validation_loss, train_accuracy, validation_accuracy))
         if not os.path.exists(save_path):
             os.makedirs(save_path)
-        
+
         if epoch % 5 == 0:
             torch.save({
                 "epoch": epoch,
@@ -129,7 +132,6 @@ def train_model(train_dataset, validation_dataset, epochs, device, input_size, s
             best_loss = validation_loss
             best_model_weights = copy.deepcopy(model.state_dict())
 
-
     return best_model_weights, history
 
 
@@ -138,13 +140,6 @@ def work(args: map, performances: list, performance_index: int):
     work_id, track_id = performances[performance_index]
 
     snapshot_path = os.path.join(args['snapshots_src'], work_id, track_id)
-
-    # temp_dataset_meta_csv = tempfile.NamedTemporaryFile(delete=False)
-    # temp_dataset_meta_csv.name
-
-    # # Write the CSV
-    # temp_dataset_meta_csv.write(b"work_id,track_id\n")
-    # temp_dataset_meta_csv.write(b"{},{}\n" % (work_id, track_id))
 
     wandb.init(project=args['wandb_project'], entity="pasinducw", config=args)
     print("Arguments", args)
@@ -193,10 +188,6 @@ def work(args: map, performances: list, performance_index: int):
         save_path=snapshot_path,
         start_state=model_snapshot,
     )
-
-    # Discard the temporary file
-    # temp_dataset_meta_csv.close()
-    # os.unlink(temp_dataset_meta_csv.name)
 
 
 def main():
@@ -251,9 +242,14 @@ def main():
     args['learning_rate'] = float(args['learning_rate'])
     args['epochs'] = int(args['epochs'])
 
-
     performances = pd.read_csv(args['meta_csv']).values.tolist()
-    work(args, performances, 0)
+    with Pool(int(args.workers)) as p:
+        func = partial(
+            work,
+            args,
+            performances,
+        )
+        p.map(func, range(len(performances)))
 
 
 if __name__ == "__main__":
