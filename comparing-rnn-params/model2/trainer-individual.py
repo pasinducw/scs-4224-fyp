@@ -158,7 +158,7 @@ def work(args: map, performances: list, performance_index: int):
         track_id=track_id,
     )
     train_dataloader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=args['batch_size'], num_workers=args['workers'], shuffle=True)
+        train_dataset, batch_size=args['batch_size'], num_workers=1, shuffle=True)
 
     validation_dataset = PerformanceChunks(
         dataset_meta_csv_path=args['validation_meta_csv'],
@@ -169,7 +169,7 @@ def work(args: map, performances: list, performance_index: int):
         frames_per_sample=args['frames_per_sample']
     )
     validation_dataloader = torch.utils.data.DataLoader(
-        validation_dataset, batch_size=args['batch_size'], num_workers=args['workers'], shuffle=False)
+        validation_dataset, batch_size=args['batch_size'], num_workers=1, shuffle=False)
 
     if args['model_snapshot']:
         model_snapshot = torch.load(args['model_snapshot'])
