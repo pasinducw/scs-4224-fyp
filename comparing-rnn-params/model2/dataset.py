@@ -32,6 +32,8 @@ class PerformanceChunks(torch.utils.data.Dataset):
             cache_limit: int = CACHE_LIMIT,
             hop_length: int = HOP_LENGTH,
             frames_per_sample: int = FRAMES_PER_SAMPLE,
+            drop_from_front: int = 0, # number of bins to drop from the front of a frame
+            drop_from_end: int = 0, # number of bins to drop from the end of a frame
     ):
 
         # Read the metadata
@@ -68,6 +70,8 @@ class PerformanceChunks(torch.utils.data.Dataset):
         self.hop_length = hop_length
         self.frames_per_sample = frames_per_sample
         self.cache = SimpleCache(cache_limit)
+        self.drop_from_front = drop_from_front
+        self.drop_from_end = drop_from_end
 
     def __len__(self):
         return self.samples
@@ -92,19 +96,22 @@ class PerformanceChunks(torch.utils.data.Dataset):
             frames = frames.transpose()
 
         # Prepare the extracted frames for the classification task
-        return self.process_frames(np.array(frames))
+        return self.process_frames(np.array(frames), drop_from_end=self.drop_from_end, drop_from_front=self.drop_from_front)
 
-    def process_frames(self, frames):
+    def process_frames(self, frames, drop_from_end=0, drop_from_front=0):
         # Get frames to [sequence_size, feature_size]
         frames = frames.transpose()
 
+        if drop_from_end:
+            frames = frames[:, :-drop_from_end]
+        if drop_from_front:
+            frames = frames[:, drop_from_front:]
+        
         maxIndices = np.argmax(frames, axis=1)
 
         filteredFrames = np.zeros(frames.shape, dtype=np.bool)
         for (step, index) in enumerate(maxIndices):
             filteredFrames[step, index] = 1.0
-
-        # filteredFrames = filteredFrames[:, :-CQT_TOP_DROP_BINS]
 
         # [sequence_size,feature_size]
         X = torch.from_numpy(filteredFrames[:-1, :]).type(torch.float32)

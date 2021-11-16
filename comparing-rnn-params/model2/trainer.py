@@ -182,12 +182,20 @@ def main():
     parser.add_argument('-t', '--model_snapshot', action="store", default=None,
                         help="continue training from a previous snapshot")
 
+    parser.add_argument('--drop_front', action="store", default=0,
+                        help="number of bins to drop from a frame front")
+
+    parser.add_argument('--drop_end', action="store", default=0,
+                        help="number of bins to drop from a frame end")
+
     args = vars(parser.parse_args())
     args['time_axis'] = 1  # TODO: Change based on the feature type selected
     args['input_size'] = 84  # TODO: Change based on the feature type selected
 
     if args['feature_type'] == 'crema':
         args['input_size'] = 12
+
+    args['input_size'] -= int(args['drop_front']) + int(args['drop_end'])
 
     wandb.init(project="my-test-project", entity="pasinducw", config=args)
 
@@ -199,7 +207,9 @@ def main():
         feature_type=args['feature_type'],
         time_axis=args['time_axis'],
         hop_length=int(args['hop_length']),
-        frames_per_sample=int(args['frames_per_sample'])
+        frames_per_sample=int(args['frames_per_sample']),
+        drop_from_front=int(args['drop_front']),
+        drop_from_end=int(args['drop_end']),
     )
     train_dataloader = torch.utils.data.DataLoader(
         train_dataset, batch_size=int(args['batch_size']), num_workers=int(args['workers']), shuffle=True)
@@ -210,7 +220,9 @@ def main():
         feature_type=args['feature_type'],
         time_axis=args['time_axis'],
         hop_length=int(args['hop_length']),
-        frames_per_sample=int(args['frames_per_sample'])
+        frames_per_sample=int(args['frames_per_sample']),
+        drop_from_front=int(args['drop_front']),
+        drop_from_end=int(args['drop_end']),
     )
     validation_dataloader = torch.utils.data.DataLoader(
         validation_dataset, batch_size=int(args['batch_size']), num_workers=int(args['workers']), shuffle=False)
