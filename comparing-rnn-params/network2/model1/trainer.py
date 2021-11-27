@@ -1,6 +1,7 @@
 import copy
 import math
 import os
+from faiss import knn
 from pytorch_metric_learning.utils import accuracy_calculator
 
 import torch
@@ -22,6 +23,21 @@ import wandb
 
 from pytorch_metric_learning import losses, miners, distances, reducers, testers
 from pytorch_metric_learning.utils.accuracy_calculator import AccuracyCalculator
+from pytorch_metric_learning.utils import accuracy_calculator
+
+class CustomAccuracyCalculator(accuracy_calculator.AccuracyCalculator):
+    def calculate_precision_at_10(self, knn_labels, query_labels, **kwargs):
+        if knn_labels is None:
+            return 0
+        return accuracy_calculator.precision_at_k(
+            knn_labels, 
+            query_labels[:, None], 
+            10,
+            self.avg_of_avgs,
+            self.label_comparison_fn)
+
+    def requires_knn(self):
+        return super().requires_knn() + ["precision_at_10"] 
 
 
 def calculate_accuracy(predicted, expected):
@@ -55,6 +71,19 @@ def train(model, loss_func, mining_func, device, train_loader, optimizer, epoch)
         optimizer.zero_grad()
         embeddings = model(data)
         indices_tuple = mining_func(embeddings, labels)
+        anchor, positive, negative = indices_tuple
+
+        max_index = 0
+        if anchor.shape[0] > 0:
+            max_index = np.max([np.max(anchor.numpy()), np.max(
+                positive.numpy()), np.max(negative.numpy())])
+
+        if max_index >= data.shape[0]:
+            print(
+                "[PREVENTED ERROR] Found index {} on the mined indices".format(max_index))
+            print("Skipping the training iteration")
+            return
+
         loss = loss_func(embeddings, labels, indices_tuple)
         loss.backward()
         optimizer.step()
@@ -71,14 +100,15 @@ def get_all_embeddings(dataset, model):
     return tester.get_all_embeddings(dataset, model)
 
 
-def test(train_set, test_set, model, accuracy_calculator, epoch):
-    train_embeddings, train_labels = get_all_embeddings(train_set, model)
-    test_embeddings, test_labels = get_all_embeddings(test_set, model)
-    train_labels = train_labels.squeeze(1)
-    test_labels = test_labels.squeeze(1)
+def test(reference_set, query_set, model, accuracy_calculator, epoch):
+    reference_embeddings, reference_labels = get_all_embeddings(reference_set, model)
+    query_embeddings, query_labels = get_all_embeddings(query_set, model)
+    reference_labels = reference_labels.squeeze(1)
+    query_labels = query_labels.squeeze(1)
+
     print("Computing accuracy")
     accuracies = accuracy_calculator.get_accuracy(
-        test_embeddings, train_embeddings, test_labels, train_labels, False)
+        query_embeddings, reference_embeddings, query_labels, reference_labels, False)
     print(
         "Test set accuracy (Precision@1) = {}".format(accuracies["precision_at_1"]))
 
@@ -93,20 +123,22 @@ def alternative():
     input_size = 49968
     output_size = 1024
     num_epochs = 4096
-    learning_rate = 0.1
+    learning_rate = 0.02
     threshold_reducer_low = 0
     margin = 0.3
     type_of_triplets = "semihard"
 
     print("Initializing dataset")
     mapper = ClassMapper()
-    dataset1 = PerformanceEmbeddings(dataset_meta_csv_path="/home/pasinducw/Downloads/Research-Datasets/covers80/old/embeddings/metadata.csv",
-                                     base_dir="/home/pasinducw/Downloads/Research-Datasets/covers80/old/embeddings", class_mapper=mapper)
-    dataset2 = PerformanceEmbeddings(dataset_meta_csv_path="/home/pasinducw/Downloads/Research-Datasets/covers80/old/embeddings/metadata.csv",
-                                     base_dir="/home/pasinducw/Downloads/Research-Datasets/covers80/old/embeddings", class_mapper=mapper)
+    train_dataset = PerformanceEmbeddings(dataset_meta_csv_path="/home/pasinducw/Downloads/Research-Datasets/covers80/old/embeddings/metadata.train.csv",
+                                          base_dir="/home/pasinducw/Downloads/Research-Datasets/covers80/old/embeddings", class_mapper=mapper)
+    query_dataset = PerformanceEmbeddings(dataset_meta_csv_path="/home/pasinducw/Downloads/Research-Datasets/covers80/old/embeddings/metadata.query.csv",
+                                          base_dir="/home/pasinducw/Downloads/Research-Datasets/covers80/old/embeddings", class_mapper=mapper, mean=train_dataset.mean, norm=train_dataset.norm)
+    original_dataset = PerformanceEmbeddings(dataset_meta_csv_path="/home/pasinducw/Downloads/Research-Datasets/covers80/old/embeddings/metadata.original.csv",
+                                             base_dir="/home/pasinducw/Downloads/Research-Datasets/covers80/old/embeddings", class_mapper=mapper, mean=train_dataset.mean, norm=train_dataset.norm)
     print("Dataset initialized")
-    train_loader = DataLoader(dataset1, batch_size=batch_size, shuffle=True, num_workers=4)
-    test_loader = DataLoader(dataset2, batch_size=batch_size, shuffle=False, num_workers=4)
+    train_loader = DataLoader(
+        train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
     print("Data loaders initialized")
 
     model = Model(input_size=input_size, output_size=output_size).to(device)
@@ -124,7 +156,7 @@ def alternative():
     mining_func = miners.TripletMarginMiner(
         margin=margin, distance=distance, type_of_triplets=type_of_triplets)
     print("mining func initialized)")
-    accuracy_calculator = AccuracyCalculator()
+    accuracy_calculator = CustomAccuracyCalculator()
     print("accuracy_calculator initialized")
 
     print("Ready to run the epochs")
@@ -132,7 +164,8 @@ def alternative():
     for epoch in range(1, num_epochs+1):
         train(model, loss_func=loss_func, mining_func=mining_func, device=device,
               train_loader=train_loader, optimizer=optimizer, epoch=epoch)
-        test(dataset1, dataset2, model, accuracy_calculator, epoch)
+        test(original_dataset, query_dataset,
+             model, accuracy_calculator, epoch)
         wandb.log({"epoch": epoch})
 
 
