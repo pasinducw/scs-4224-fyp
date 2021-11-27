@@ -116,7 +116,7 @@ class PerformanceChunks(torch.utils.data.Dataset):
     def get_performance(self, work_id: str, track_id: str):
         cache_key = "%s:%s" % (work_id, track_id)
         cache_result = self.cache.get(cache_key)
-        if cache_result:
+        if cache_result is not None:
             return cache_result
 
         performance_path = [self.base_dir, work_id, "%s.%s" % (track_id, 'h5')]

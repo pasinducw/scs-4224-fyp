@@ -99,7 +99,7 @@ def drive(config):
 
         device = torch.device(config.device)
         model = Model(input_size=config.input_size,
-                      hidden_size=config.hidden_size).to(device)
+                      hidden_size=config.state_dim).to(device)
 
         optimizer = torch.optim.Adagrad(
             model.parameters(), lr=config.learning_rate)
@@ -122,10 +122,10 @@ def drive(config):
             validate(model, loss_fn, device, validation_dataloader, epoch)
             wandb.log({"epoch": epoch})
 
-            if not os.path.exists(config.local_snapshots_dir):
-                os.makedirs(config.local_snapshots_dir)
+            if not os.path.exists(os.path.join(config.local_snapshots_dir, "checkpoints")):
+                os.makedirs(os.path.join(config.local_snapshots_dir, "checkpoints"))
             model_checkpoint_path = os.path.join(
-                config.local_snapshots_dir, "checkpoints", "model.pth")
+                config.local_snapshots_dir, "checkpoints", "epoch-{}.pth".format(epoch+1))
 
             torch.save({
                 "model": model.state_dict(),
@@ -133,7 +133,7 @@ def drive(config):
             }, model_checkpoint_path)
 
             artifact.add_file(model_checkpoint_path,
-                              "{}/{}".format("checkpoints", "model.pth"))
+                              "{}/{}".format("checkpoints", "epoch-{}.pth".format(epoch+1)))
 
         model_path = os.path.join(config.local_snapshots_dir, "model.pth")
         torch.save({
@@ -141,8 +141,7 @@ def drive(config):
             "optimizer": optimizer.state_dict()
         }, model_path)
         artifact.add_file(model_path, "model.pth")
-        wandb_run.finish_artifact(artifact)
-
+        wandb_run.log_artifact(artifact)
 
 def main():
     parser = argparse.ArgumentParser(description="RNN Parameter Trainer")
@@ -177,6 +176,8 @@ def main():
                         help="continue training from a previous snapshot on wandb")
     parser.add_argument("--local_snapshots_dir", action="store", required=True,
                         help="Path to store snapshots created while training, before uploading to wandb")
+    parser.add_argument("--enable_checkpoints", action="store", type=bool,
+                        help="Save model state at every epoch", default=True)
 
     parser.add_argument("--time_axis", action="store", type=int,
                         help="index of time axis", default=1)
