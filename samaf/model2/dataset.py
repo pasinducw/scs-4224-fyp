@@ -107,16 +107,14 @@ class PerformanceChunks(torch.utils.data.Dataset):
         # filteredFrames = filteredFrames[:, :-CQT_TOP_DROP_BINS]
 
         # [sequence_size,feature_size]
-        X = torch.from_numpy(filteredFrames[:-1, :]).type(torch.float32)
-        # [sequence_size]
-        Y = torch.as_tensor(np.argmax(filteredFrames[-1, :]))
+        X = torch.from_numpy(filteredFrames[:, :]).type(torch.float32)
 
-        return X, Y
+        return X
 
     def get_performance(self, work_id: str, track_id: str):
         cache_key = "%s:%s" % (work_id, track_id)
         cache_result = self.cache.get(cache_key)
-        if cache_result:
+        if cache_result is not None:
             return cache_result
 
         performance_path = [self.base_dir, work_id, "%s.%s" % (track_id, 'h5')]

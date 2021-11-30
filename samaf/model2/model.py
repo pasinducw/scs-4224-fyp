@@ -24,6 +24,7 @@ class Model(torch.nn.Module):
 
     def forward(self, X):
         # X -> [batch_size, sequence_length, feature_size]
+        print("Input ", X.shape)
 
         # there are this number of mfcc blocks per each audio input
         batch_size, sequence_length, feature_size = X.shape[0], X.shape[1], X.shape[2]
@@ -37,13 +38,14 @@ class Model(torch.nn.Module):
         # Encode
         _, (h_n, c_n) = encoder(X)
 
-        # Make a copy of the encoder hidden state and transform to [batch size, blocks, embedding size]
-        embeddings = torch.clone(h_n[-1])  # TODO: Why clone?
+        embeddings = h_n[-1]
         print("Embeddings ", embeddings.shape)
 
         # return embeddings
         # Decode
-        decoder_input = torch.clone(X[:, 0, :])
+        decoder_input = X[:, 0, :].unsqueeze(1)
+        print("Decoder Input 0", decoder_input.shape)
+        print("Decoder state", h_n.shape, c_n.shape)
 
         decoder_state = (h_n, c_n)
         decoder_outputs = []
@@ -53,17 +55,16 @@ class Model(torch.nn.Module):
             # h_n -> [number_of_layers, batch_size, embedding_size]
             # c_n -> [number_of_layers, batch_size, embedding_size]
             output, (h_n, c_n) = decoder(decoder_input, decoder_state)
-            decoder_output = self.fc(output.squeeze(1))
-            decoder_outputs.append(decoder_output)
+            decoder_output = self.projection(output.squeeze(1))
 
             decoder_input = decoder_output.unsqueeze(1)
             decoder_state = (h_n, c_n)
 
-        # Transform the decoder outputs to the shape of initial inputs
-        decoder_outputs = torch.cat(decoder_outputs, 1)
-        print("Decoder outputs ", decoder_outputs.shape)
+            decoder_outputs.append(decoder_input)
 
-        decoder_outputs = decoder_outputs.unsqueeze(1)
+        # Transform the decoder outputs to the shape of initial inputs
+
+        decoder_outputs = torch.cat(decoder_outputs, 1)
         print("Decoder outputs ", decoder_outputs.shape)
 
         return embeddings, decoder_outputs
@@ -84,28 +85,32 @@ def test(config):
 
     device = torch.device(config.device)
     model = Model(input_size=config.input_size,
-                  hidden_size=config.hidden_size).to(device)
+                  embedding_size=config.hidden_size).to(device)
 
     model.train()
 
-    for i, (sequence, next_frame) in enumerate(dataloader):
-        sequence, next_frame = sequence.to(device), next_frame.to(device)
+    for i, (sequence) in enumerate(dataloader):
+        sequence = sequence.to(device)
         model(sequence)
 
+class Config:
+    def __init__(self, iterable=(), **kwargs):
+        self.__dict__.update(iterable, **kwargs)
 
 if __name__ == "__main__":
-    config = {
-        "meta_csv": "",
-        "dataset_dir": "",
+    config = Config({
+        "meta_csv": "/home/pasinducw/Downloads/Research-Datasets/covers80/covers80_annotations_single_1.csv",
+        "dataset_dir": "/home/pasinducw/Downloads/Research-Datasets/covers80/covers80_features",
         "feature_type": "cqt",
         "time_axis": 1,
         "hop_length": 42,
-        "frames_per_sample": 100,
-        "cache_limit": 80,
+        "frames_per_sample": 64,
+        "dataset_cache_limit": 80,
         "workers": 1,
         "device": "cpu",
         "input_size": 84,
-        "hidden_size": 128
-    }
+        "hidden_size": 128,
+        "batch_size": 1024
+    })
 
     test(config)
