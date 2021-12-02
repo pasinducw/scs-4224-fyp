@@ -109,7 +109,7 @@ class PerformanceChunks(torch.utils.data.Dataset):
         # [sequence_size,feature_size]
         X = torch.from_numpy(filteredFrames[:, :]).type(torch.float32)
 
-        return X
+        return (X, maxIndices)
 
     def get_performance(self, work_id: str, track_id: str):
         cache_key = "%s:%s" % (work_id, track_id)
@@ -121,6 +121,31 @@ class PerformanceChunks(torch.utils.data.Dataset):
         performance_path = os.path.join(*performance_path)
         with h5py.File(performance_path) as file:
             data = np.copy(file[self.feature_type][:])
+
+
+
+        # # Change the sequence to a simple SINE wave
+        # # data -> [CQT_coefficients(84), sequence_length]
+        # bins, samples = data.shape[0], data.shape[1]
+        # freq = 50.0/samples
+
+        # steps = np.linspace(0, samples, samples, endpoint=False)
+        # wave = np.sin(2 * np.pi * freq * steps)
+        
+        # # Fitting the wave to the plot
+        # wave = (wave + 1.0) * ((bins-1) / 2.0)
+        # wave = np.floor(wave).astype(int)
+
+        # # Creating the plot
+        # plot = np.zeros((bins, samples))
+        # for (index, bin) in enumerate(wave):
+        #     plot[bin, index] = 1.0
+
+        # # Overriding data with plot
+        # data = plot
+        # # End of custom change to data
+
+
 
         self.cache.set(cache_key, data)
         return data

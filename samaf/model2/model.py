@@ -24,7 +24,7 @@ class Model(torch.nn.Module):
 
     def forward(self, X):
         # X -> [batch_size, sequence_length, feature_size]
-        print("Input ", X.shape)
+        # print("Input ", X.shape)
 
         # there are this number of mfcc blocks per each audio input
         batch_size, sequence_length, feature_size = X.shape[0], X.shape[1], X.shape[2]
@@ -39,23 +39,27 @@ class Model(torch.nn.Module):
         _, (h_n, c_n) = encoder(X)
 
         embeddings = h_n[-1]
-        print("Embeddings ", embeddings.shape)
+        # print("Embeddings ", embeddings.shape)
 
         # return embeddings
         # Decode
         decoder_input = X[:, 0, :].unsqueeze(1)
-        print("Decoder Input 0", decoder_input.shape)
-        print("Decoder state", h_n.shape, c_n.shape)
+        # print("Decoder Input 0", decoder_input.shape)
+        # print("Decoder state", h_n.shape, c_n.shape)
 
         decoder_state = (h_n, c_n)
         decoder_outputs = []
+
+        softmax = torch.nn.LogSoftmax(dim=1)
 
         for step in range(sequence_length):
             # output -> [batch_size, sequence_length(1 here), embedding_size]
             # h_n -> [number_of_layers, batch_size, embedding_size]
             # c_n -> [number_of_layers, batch_size, embedding_size]
+            
+            # decoder_input = torch.randn(batch_size, 1, feature_size) # Random input
             output, (h_n, c_n) = decoder(decoder_input, decoder_state)
-            decoder_output = self.projection(output.squeeze(1))
+            decoder_output = softmax(self.projection(output.squeeze(1)))
 
             decoder_input = decoder_output.unsqueeze(1)
             decoder_state = (h_n, c_n)
@@ -65,7 +69,7 @@ class Model(torch.nn.Module):
         # Transform the decoder outputs to the shape of initial inputs
 
         decoder_outputs = torch.cat(decoder_outputs, 1)
-        print("Decoder outputs ", decoder_outputs.shape)
+        # print("Decoder outputs ", decoder_outputs.shape)
 
         return embeddings, decoder_outputs
 
@@ -84,7 +88,7 @@ def test(config):
         dataset, batch_size=config.batch_size, num_workers=config.workers, shuffle=True)
 
     device = torch.device(config.device)
-    model = Model(input_size=config.input_size,
+    model = Model(input_size=config.input_size, layers=config.model_layers,
                   embedding_size=config.hidden_size).to(device)
 
     model.train()
@@ -92,6 +96,7 @@ def test(config):
     for i, (sequence) in enumerate(dataloader):
         sequence = sequence.to(device)
         model(sequence)
+
 
 class Config:
     def __init__(self, iterable=(), **kwargs):
@@ -110,7 +115,8 @@ if __name__ == "__main__":
         "device": "cpu",
         "input_size": 84,
         "hidden_size": 128,
-        "batch_size": 1024
+        "batch_size": 1024,
+        "model_layers": 2,
     })
 
     test(config)

@@ -1,8 +1,8 @@
 import os
 
 import torch
-
 import numpy as np
+import librosa.display
 
 from model import Model
 from dataset import PerformanceChunks
@@ -11,68 +11,82 @@ import argparse
 import wandb
 
 
-def calculate_accuracy(predicted, expected):
-    maximumIndices = np.argmax(predicted, axis=1)
-    correct = 0.0
-    for (step, index) in enumerate(maximumIndices):
-        if expected[step] == index:
-            correct += 1.0
-    return (correct / (predicted.shape[0]))
-
-
 def train(model, loss_fn, device, dataloader, optimizer, epoch):
     model.train()
     losses = []
-    accuracies = []
 
-    for i, (sequence, next_frame) in enumerate(dataloader):
-        sequence, next_frame = sequence.to(device), next_frame.to(device)
+    for i, (sequence, sequence_indices) in enumerate(dataloader):
+        sequence = sequence.to(device)
 
         optimizer.zero_grad()
-        next_frame_pred = model(sequence)
-        # loss = 1.0 * loss_fn(next_frame_pred, next_frame)
-        # loss.backward()
-        # optimizer.step()
+        (embeddings, reconstructed_sequence) = model(sequence)
+        loss = 1.0 * loss_fn(sequence_indices,
+                             reconstructed_sequence, embeddings)
+        loss.backward()
+        optimizer.step()
 
-        # accuracy = calculate_accuracy(
-        #     next_frame_pred.detach(), next_frame.detach()) * 100
+        losses.append(loss.item())
 
-        # losses.append(loss.item())
-        # accuracies.append(accuracy)
+        if i % 100 == 0:
+            print("Epoch {} batch {}: train loss {}".format(
+                epoch, i+1, loss.item()))
 
-        # if i % 100 == 0:
-        #     print("Epoch {} batch {}: train loss {}\ttrain accuracy {}%".format(
-        #         epoch, i+1, loss.item(), accuracy))
+    wandb.log({"loss": np.mean(losses)}, commit=False)
 
-    wandb.log({"loss": np.mean(losses),
-              "accuracy": np.mean(accuracies)}, commit=False)
+    # Log the last available sequence and reconstructed sequence
+    def get_plot(sequence):
+        data = sequence.detach().numpy().transpose()
+        print("Get plot shape", data.shape)
+        return librosa.display.specshow(data)
+
+    wandb.log({
+        "reference_sequence": wandb.Image(get_plot(sequence[0])),
+        "reconstructed_sequence": wandb.Image(get_plot(reconstructed_sequence[0]))},
+        commit=False)
 
 
 def validate(model, loss_fn, device, dataloader, epoch):
     model.eval()
     losses = []
-    accuracies = []
 
     with torch.no_grad():
-        for i, (sequence, next_frame) in enumerate(dataloader):
-            sequence, next_frame = sequence.to(device), next_frame.to(device)
-            next_frame_pred = model(sequence)
+        for i, (sequence, sequence_indices) in enumerate(dataloader):
+            sequence = sequence.to(device)
+            (embeddings, reconstructed_sequence) = model(sequence)
 
-            loss = 1.0 * loss_fn(next_frame_pred, next_frame)
+            loss = 1.0 * loss_fn(sequence_indices,
+                                 reconstructed_sequence, embeddings)
+
             losses.append(loss.item())
-            accuracy = calculate_accuracy(
-                next_frame_pred.detach(), next_frame.detach()) * 100
-            accuracies.append(accuracy)
+
             if i % 100 == 0:
-                print("Epoch {} batch {}: validation loss {}\tvalidation accuracy {}%".format(
-                    epoch, i+1, loss.item(), accuracy))
+                print("Epoch {} batch {}: validation loss {}".format(
+                    epoch, i+1, loss.item()))
 
     wandb.log(
-        {"validation_loss": np.mean(losses), "validation_accuracy": np.mean(accuracy)}, commit=False)
+        {"validation_loss": np.mean(losses)}, commit=False)
+
+
+def get_loss_function():
+
+    autoencoder_loss = torch.nn.CrossEntropyLoss()
+
+    def loss_fn(expected_indices_sequence, reconstructed_sequence, embeddings):
+        # expected_indices_sequence -> [batch_size, sequence_length]
+        # reconstructed_sequence -> [batch_size, sequence_length, feature_size]
+        feature_size = reconstructed_sequence.shape[-1]
+
+        input = reconstructed_sequence.view(-1, feature_size)
+        target = expected_indices_sequence.view(-1)
+
+        return autoencoder_loss(input, target)
+
+    return loss_fn
 
 
 def drive(config):
-    with wandb.init(project=config.wandb_project_name, job_type="train", entity="pasinducw", config=config) as wandb_run:
+    with wandb.init(project=config.wandb_project_name, name=config.wandb_run_name,
+                    job_type="train", entity="pasinducw", config=config) as wandb_run:
         train_dataset = PerformanceChunks(
             dataset_meta_csv_path=config.meta_csv,
             base_dir=config.dataset_dir,
@@ -98,12 +112,12 @@ def drive(config):
             validation_dataset, batch_size=config.batch_size, num_workers=config.workers, shuffle=False)
 
         device = torch.device(config.device)
-        model = Model(input_size=config.input_size,
-                      hidden_size=config.hidden_size).to(device)
+        model = Model(input_size=config.input_size, share_weights=not config.use_separate_models,
+                      embedding_size=config.state_dim).to(device)
 
         optimizer = torch.optim.Adagrad(
             model.parameters(), lr=config.learning_rate)
-        loss_fn = torch.nn.CrossEntropyLoss()
+        loss_fn = get_loss_function()
 
         if config.model_snapshot:
             print("Loading model snapshot")
@@ -119,13 +133,16 @@ def drive(config):
         artifact = wandb.Artifact("{}".format(wandb_run.name), type="model")
         for epoch in range(1, config.epochs+1):
             train(model, loss_fn, device, train_dataloader, optimizer, epoch)
-            # validate(model, loss_fn, device, validation_dataloader, epoch)
+            if config.validate:
+                validate(model, loss_fn, device, validation_dataloader, epoch)
             wandb.log({"epoch": epoch})
 
-            if not os.path.exists(config.local_snapshots_dir):
-                os.makedirs(config.local_snapshots_dir)
+            model_checkpoint_dir = os.path.join(
+                config.local_snapshots_dir, "checkpoints")
+            if not os.path.exists(model_checkpoint_dir):
+                os.makedirs(model_checkpoint_dir)
             model_checkpoint_path = os.path.join(
-                config.local_snapshots_dir, "checkpoints", "model.pth")
+                model_checkpoint_dir, "model.pth")
 
             torch.save({
                 "model": model.state_dict(),
@@ -133,7 +150,7 @@ def drive(config):
             }, model_checkpoint_path)
 
             artifact.add_file(model_checkpoint_path,
-                              "{}/{}".format("checkpoints", "model.pth"))
+                              "{}/{}".format("checkpoints", "epoch-{}.pth".format(epoch+1)))
 
         model_path = os.path.join(config.local_snapshots_dir, "model.pth")
         torch.save({
@@ -141,7 +158,7 @@ def drive(config):
             "optimizer": optimizer.state_dict()
         }, model_path)
         artifact.add_file(model_path, "model.pth")
-        wandb_run.finish_artifact(artifact)
+        wandb_run.log_artifact(artifact)
 
 
 def main():
@@ -187,8 +204,20 @@ def main():
     parser.add_argument("--dataset_cache_limit", action="store", type=int,
                         help="dataset cache limit", default=100)
 
+    parser.add_argument("--layers", action="store", type=int,
+                        help="number of stacked LSTM layers", default=1)
+
     parser.add_argument("--wandb_project_name", action="store", required=True,
                         help="wanDB project name")
+
+    parser.add_argument("--wandb_run_name", action="store", required=False,
+                        help="wanDB run name")
+
+    parser.add_argument("--validate", action="store", type=bool, default=False,
+                        help="validate after each epoch with the validation dataset")
+
+    parser.add_argument("--use_separate_models", type=bool, default=False,
+                        help="use encoder and decoder models with separate weights")
 
     args = parser.parse_args()
 
