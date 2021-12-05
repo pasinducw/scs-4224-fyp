@@ -16,7 +16,7 @@ def train(model, loss_fn, device, dataloader, optimizer, epoch):
     losses = []
 
     for i, (sequence, sequence_indices) in enumerate(dataloader):
-        sequence = sequence.to(device)
+        sequence, sequence_indices = sequence.to(device), sequence_indices.to(device)
 
         optimizer.zero_grad()
         (embeddings, reconstructed_sequence) = model(sequence)
@@ -35,7 +35,7 @@ def train(model, loss_fn, device, dataloader, optimizer, epoch):
 
     # Log the last available sequence and reconstructed sequence
     def get_plot(sequence):
-        data = sequence.detach().numpy().transpose()
+        data = sequence.detach().cpu().numpy().transpose()
         print("Get plot shape", data.shape)
         return librosa.display.specshow(data)
 
@@ -51,7 +51,7 @@ def validate(model, loss_fn, device, dataloader, epoch):
 
     with torch.no_grad():
         for i, (sequence, sequence_indices) in enumerate(dataloader):
-            sequence = sequence.to(device)
+            sequence, sequence_indices = sequence.to(device), sequence_indices.to(device)
             (embeddings, reconstructed_sequence) = model(sequence)
 
             loss = 1.0 * loss_fn(sequence_indices,
