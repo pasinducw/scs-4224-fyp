@@ -92,7 +92,8 @@ class PerformanceChunks(torch.utils.data.Dataset):
             frames = frames.transpose()
 
         # Prepare the extracted frames for the classification task
-        return self.process_frames(np.array(frames))
+        X, max_indices = self.process_frames(np.array(frames))
+        return (X, max_indices, work_id, track_id)
 
     def process_frames(self, frames):
         # Get frames to [sequence_size, feature_size]

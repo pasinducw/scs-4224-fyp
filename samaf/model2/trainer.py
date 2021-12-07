@@ -15,7 +15,7 @@ def train(model, loss_fn, device, dataloader, optimizer, epoch):
     model.train()
     losses = []
 
-    for i, (sequence, sequence_indices) in enumerate(dataloader):
+    for i, (sequence, sequence_indices, work_id, track_id) in enumerate(dataloader):
         sequence, sequence_indices = sequence.to(device), sequence_indices.to(device)
 
         optimizer.zero_grad()
@@ -46,11 +46,10 @@ def train(model, loss_fn, device, dataloader, optimizer, epoch):
 
 
 def validate(model, loss_fn, device, dataloader, epoch):
-    model.eval()
     losses = []
 
     with torch.no_grad():
-        for i, (sequence, sequence_indices) in enumerate(dataloader):
+        for i, (sequence, sequence_indices, work_id, track_id) in enumerate(dataloader):
             sequence, sequence_indices = sequence.to(device), sequence_indices.to(device)
             (embeddings, reconstructed_sequence) = model(sequence)
 
@@ -151,6 +150,7 @@ def drive(config):
 
             artifact.add_file(model_checkpoint_path,
                               "{}/{}".format("checkpoints", "epoch-{}.pth".format(epoch+1)))
+            wandb_run.log_artifact(artifact)
 
         model_path = os.path.join(config.local_snapshots_dir, "model.pth")
         torch.save({
