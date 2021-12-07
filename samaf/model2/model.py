@@ -41,7 +41,10 @@ class Model(torch.nn.Module):
         embeddings = h_n[-1]
         # print("Embeddings ", embeddings.shape)
 
-        # return embeddings
+        if self.training == False:
+            # return the embeddings without sending through the decoder
+            return embeddings
+
         # Decode
         decoder_input = X[:, 0, :].unsqueeze(1)
         # print("Decoder Input 0", decoder_input.shape)
