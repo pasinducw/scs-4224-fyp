@@ -12,63 +12,6 @@ import argparse
 import wandb
 
 
-def train(model, loss_fn, device, dataloader, optimizer, epoch):
-    model.train()
-    losses = []
-
-    for i, (sequence, sequence_indices) in enumerate(dataloader):
-        sequence, sequence_indices = sequence.to(
-            device), sequence_indices.to(device)
-
-        optimizer.zero_grad()
-        (embeddings, reconstructed_sequence) = model(sequence)
-        loss = 1.0 * loss_fn(sequence_indices,
-                             reconstructed_sequence, embeddings)
-        loss.backward()
-        optimizer.step()
-
-        losses.append(loss.item())
-
-        if i % 100 == 0:
-            print("Epoch {} batch {}: train loss {}".format(
-                epoch, i+1, loss.item()))
-
-    wandb.log({"loss": np.mean(losses)}, commit=False)
-
-    # Log the last available sequence and reconstructed sequence
-    def get_plot(sequence):
-        data = sequence.detach().cpu().numpy().transpose()
-        print("Get plot shape", data.shape)
-        return librosa.display.specshow(data)
-
-    wandb.log({
-        "reference_sequence": wandb.Image(get_plot(sequence[0])),
-        "reconstructed_sequence": wandb.Image(get_plot(reconstructed_sequence[0]))},
-        commit=False)
-
-
-def validate(model, loss_fn, device, dataloader, epoch):
-    losses = []
-
-    with torch.no_grad():
-        for i, (sequence, sequence_indices) in enumerate(dataloader):
-            sequence, sequence_indices = sequence.to(
-                device), sequence_indices.to(device)
-            (embeddings, reconstructed_sequence) = model(sequence)
-
-            loss = 1.0 * loss_fn(sequence_indices,
-                                 reconstructed_sequence, embeddings)
-
-            losses.append(loss.item())
-
-            if i % 100 == 0:
-                print("Epoch {} batch {}: validation loss {}".format(
-                    epoch, i+1, loss.item()))
-
-    wandb.log(
-        {"validation_loss": np.mean(losses)}, commit=False)
-
-
 def get_hashes_dict(model, dataloader, device, hash_fn):
     model.eval()
     db = dict()
@@ -90,18 +33,32 @@ def get_hashes_dict(model, dataloader, device, hash_fn):
     return db
 
 
-def hash_fn(embeddings):
+def build_hash_fn(pivot=0.0):
     def threshold(value):
-        if value > 0.0:
+        if value > pivot:
             return True
         return False
-
     vectorized_threshold = np.vectorize(threshold)
-    return vectorized_threshold(embeddings).astype(bool)
+
+    def hash_fn(embeddings):
+        # embeddings -> [batch_size, hidden_size]
+        batch_size, hidden_size = embeddings.shape
+
+        boolean_values = vectorized_threshold(embeddings).astype(bool)
+        hashes = np.zeros(batch_size)
+
+        for row in range(batch_size):
+            hash = 0.0
+            for (index, value) in enumerate(boolean_values[row]):
+                if value == True:
+                    hash += 1 << index
+            hashes[row] = hash
+
+        return hashes
+    return hash_fn
 
 
 def build_reference_db(model, device, config):
-    # Implement
     reference_dataset = PerformanceChunks(
         dataset_meta_csv_path=config.reference_csv,
         base_dir=config.dataset_dir,
@@ -116,24 +73,20 @@ def build_reference_db(model, device, config):
     )
 
     reference_db = get_hashes_dict(
-        model, reference_dataloader, device, hash_fn)
+        model, reference_dataloader, device, build_hash_fn(0.0))
     return reference_db
 
 
 def query(model, device, reference_db, config):
-    # Implement
-    # For each (work_id, track_id), in the query set, obtain the hashes.
-    # Compute the most likely song
-
-    query_tracks = pd.read_csv(config.query_csv)
+    query_tracks = pd.read_csv(config.query_csv).values.tolist()
 
     for [work_id, track_id] in query_tracks:
         query_dataset = PerformanceChunks(
-            dataset_meta_csv_path=config.reference_csv,
+            dataset_meta_csv_path=config.query_csv,
             base_dir=config.dataset_dir,
             feature_type=config.feature_type,
             time_axis=config.time_axis,
-            hop_length=config.hop_length,
+            hop_length=2,  # config.hop_length,
             frames_per_sample=config.frames_per_sample,
             cache_limit=config.dataset_cache_limit,
             work_id=work_id,
@@ -145,33 +98,36 @@ def query(model, device, reference_db, config):
         )
 
         query_hashes = get_hashes_dict(
-            model, query_dataloader, device, hash_fn,
+            model, query_dataloader, device, build_hash_fn(0.0),
         ).keys()
 
         # Find the matches
         matches = dict()
+
+        no_match_count = 0
+        match_count = 0
+
         for hash in query_hashes:
             matched_entries = []
             if hash in reference_db:
                 matched_entries = reference_db[hash]
+                match_count += 1
+            else:
+                no_match_count += 1
 
             for (matched_work_id, matched_track_id, matched_hash) in matched_entries:
                 if matched_work_id not in matches:
                     matches[matched_work_id] = 0
                 matches[matched_work_id] += 1
-
-        # Find the most voted item
-        # wandb.log({
-        #     "query_work_id": work_id, "query_track_id": track_id,
-        #     "matches": matches,
-        # }, commit=False)
-
         matches_list = []
         for matched_work_id in matches.keys():
-          matches_list.append([matched_work_id, matches[matched_work_id]])
-        matche_list = np.sort(matches_list, )
+            matches_list.append((matched_work_id, matches[matched_work_id]))
 
-    pass
+        dtype = [('work_id', 'S128'), ('matches', int)]
+        matches_list = np.array(matches_list, dtype=dtype)
+        matches_list = np.sort(matches_list, order='matches')
+        # matches list contains the works that were matched, in descending order of # of votes
+        matches_list = np.flip(matches_list)
 
 
 def drive(config):
