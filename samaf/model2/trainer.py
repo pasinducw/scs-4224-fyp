@@ -122,7 +122,7 @@ def drive(config):
 
         if config.model_snapshot:
             print("Loading model snapshot")
-            model_snapshot = wandb_run.restore(config.model_snapshot)
+            model_snapshot = wandb_run.restore("model.pth", run_path=config.model_snapshot)
             model.load_state_dict(model_snapshot["model"])
 
         wandb.watch(model, criterion=loss_fn, log="all")
@@ -184,7 +184,7 @@ def main():
 
     # https://docs.wandb.ai/guides/track/advanced/save-restore
     parser.add_argument("--model_snapshot", action="store", default=None,
-                        help="snapshot dir on wandb")
+                        help="snapshot run on wandb")
 
     parser.add_argument("--time_axis", action="store", type=int,
                         help="index of time axis", default=1)
