@@ -16,7 +16,8 @@ def train(model, loss_fn, device, dataloader, optimizer, epoch):
     losses = []
 
     for i, (sequence, sequence_indices, work_id, track_id) in enumerate(dataloader):
-        sequence, sequence_indices = sequence.to(device), sequence_indices.to(device)
+        sequence, sequence_indices = sequence.to(
+            device), sequence_indices.to(device)
 
         optimizer.zero_grad()
         (embeddings, reconstructed_sequence) = model(sequence)
@@ -50,7 +51,8 @@ def validate(model, loss_fn, device, dataloader, epoch):
 
     with torch.no_grad():
         for i, (sequence, sequence_indices, work_id, track_id) in enumerate(dataloader):
-            sequence, sequence_indices = sequence.to(device), sequence_indices.to(device)
+            sequence, sequence_indices = sequence.to(
+                device), sequence_indices.to(device)
             (embeddings, reconstructed_sequence) = model(sequence)
 
             loss = 1.0 * loss_fn(sequence_indices,
@@ -120,16 +122,12 @@ def drive(config):
 
         if config.model_snapshot:
             print("Loading model snapshot")
-            model_snapshot = wandb_run.use_artifact(config.model_snapshot)
-            model_snapshot_dir = model_snapshot.download()
-            model_snapshot = torch.load(
-                os.path.join(model_snapshot_dir, "model.pth"))
+            model_snapshot = wandb_run.restore(config.model_snapshot)
             model.load_state_dict(model_snapshot["model"])
 
         wandb.watch(model, criterion=loss_fn, log="all")
         print("Configurations done. Commence model training")
 
-        artifact = wandb.Artifact("{}".format(wandb_run.name), type="model")
         for epoch in range(1, config.epochs+1):
             train(model, loss_fn, device, train_dataloader, optimizer, epoch)
             if config.validate:
@@ -137,28 +135,22 @@ def drive(config):
             wandb.log({"epoch": epoch})
 
             model_checkpoint_dir = os.path.join(
-                config.local_snapshots_dir, "checkpoints")
+                wandb.run.dir, "checkpoints")
             if not os.path.exists(model_checkpoint_dir):
                 os.makedirs(model_checkpoint_dir)
             model_checkpoint_path = os.path.join(
-                model_checkpoint_dir, "model.pth")
+                model_checkpoint_dir, "checkpoint-{}.pth".format(epoch+1))
 
             torch.save({
                 "model": model.state_dict(),
                 "optimizer": optimizer.state_dict()
             }, model_checkpoint_path)
 
-            artifact.add_file(model_checkpoint_path,
-                              "{}/{}".format("checkpoints", "epoch-{}.pth".format(epoch+1)))
-            wandb_run.log_artifact(artifact)
-
-        model_path = os.path.join(config.local_snapshots_dir, "model.pth")
+        model_path = os.path.join(wandb.run.dir, "model.pth")
         torch.save({
             "model": model.state_dict(),
             "optimizer": optimizer.state_dict()
         }, model_path)
-        artifact.add_file(model_path, "model.pth")
-        wandb_run.log_artifact(artifact)
 
 
 def main():
@@ -190,10 +182,9 @@ def main():
     parser.add_argument("--learning_rate", action="store", type=float,
                         help="learning rate", default=1e-2)
 
+    # https://docs.wandb.ai/guides/track/advanced/save-restore
     parser.add_argument("--model_snapshot", action="store", default=None,
-                        help="continue training from a previous snapshot on wandb")
-    parser.add_argument("--local_snapshots_dir", action="store", required=True,
-                        help="Path to store snapshots created while training, before uploading to wandb")
+                        help="snapshot dir on wandb")
 
     parser.add_argument("--time_axis", action="store", type=int,
                         help="index of time axis", default=1)
