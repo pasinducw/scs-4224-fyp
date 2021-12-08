@@ -61,7 +61,7 @@ def build_hash_fn(pivot=0.0):
 def build_reference_db(model, device, config):
     reference_dataset = PerformanceChunks(
         dataset_meta_csv_path=config.reference_csv,
-        base_dir=config.dataset_dir,
+        base_dir=config.reference_dataset_dir,
         feature_type=config.feature_type,
         time_axis=config.time_axis,
         hop_length=config.hop_length,
@@ -80,10 +80,19 @@ def build_reference_db(model, device, config):
 def query(model, device, reference_db, config):
     query_tracks = pd.read_csv(config.query_csv).values.tolist()
 
+    all_matches = []
+
+    # Utility function to identify a single work based on the task type
+    def get_computed_work_id(work_id, track_id): 
+        if config.task == 'version':
+            return work_id
+        return "{}-{}".format(work_id, track_id)
+
     for [work_id, track_id] in query_tracks:
+        computed_work_id = get_computed_work_id(work_id, track_id)
         query_dataset = PerformanceChunks(
             dataset_meta_csv_path=config.query_csv,
-            base_dir=config.dataset_dir,
+            base_dir=config.query_dataset_dir,
             feature_type=config.feature_type,
             time_axis=config.time_axis,
             hop_length=2,  # config.hop_length,
@@ -115,13 +124,15 @@ def query(model, device, reference_db, config):
             else:
                 no_match_count += 1
 
-            for (matched_work_id, matched_track_id, matched_hash) in matched_entries:
-                if matched_work_id not in matches:
-                    matches[matched_work_id] = 0
-                matches[matched_work_id] += 1
+            for (matched_computed_work_id, matched_track_id, matched_hash) in matched_entries:
+                computed_matched_work_id = get_computed_work_id(matched_computed_work_id, matched_track_id)
+                if computed_matched_work_id not in matches:
+                    matches[computed_matched_work_id] = 0
+                matches[computed_matched_work_id] += 1
+        
         matches_list = []
-        for matched_work_id in matches.keys():
-            matches_list.append((matched_work_id, matches[matched_work_id]))
+        for matched_computed_work_id in matches.keys():
+            matches_list.append((matched_computed_work_id, matches[matched_computed_work_id]))
 
         dtype = [('work_id', 'S128'), ('matches', int)]
         matches_list = np.array(matches_list, dtype=dtype)
@@ -129,83 +140,37 @@ def query(model, device, reference_db, config):
         # matches list contains the works that were matched, in descending order of # of votes
         matches_list = np.flip(matches_list)
 
+        all_matches.append((computed_work_id, matches_list))
+
+    return all_matches
+
 
 def drive(config):
     with wandb.init(project=config.wandb_project_name, name=config.wandb_run_name,
                     job_type="evaluate", entity="pasinducw", config=config) as wandb_run:
-        train_dataset = PerformanceChunks(
-            dataset_meta_csv_path=config.meta_csv,
-            base_dir=config.dataset_dir,
-            feature_type=config.feature_type,
-            time_axis=config.time_axis,
-            hop_length=config.hop_length,
-            frames_per_sample=config.frames_per_sample,
-            cache_limit=config.dataset_cache_limit
-        )
-        train_dataloader = torch.utils.data.DataLoader(
-            train_dataset, batch_size=config.batch_size, num_workers=config.workers, shuffle=True)
-
-        validation_dataset = PerformanceChunks(
-            dataset_meta_csv_path=config.validation_meta_csv,
-            base_dir=config.dataset_dir,
-            feature_type=config.feature_type,
-            time_axis=config.time_axis,
-            hop_length=config.hop_length,
-            frames_per_sample=config.frames_per_sample,
-            cache_limit=config.dataset_cache_limit
-        )
-        validation_dataloader = torch.utils.data.DataLoader(
-            validation_dataset, batch_size=config.batch_size, num_workers=config.workers, shuffle=False)
 
         device = torch.device(config.device)
-        model = Model(input_size=config.input_size, share_weights=not config.use_separate_models,
-                      embedding_size=config.state_dim).to(device)
+        model = Model(
+            input_size=config.input_size, share_weights=True,
+            embedding_size=config.state_dim
+        ).to(device)
 
-        optimizer = torch.optim.Adagrad(
-            model.parameters(), lr=config.learning_rate)
-        loss_fn = get_loss_function()
+        model_snapshot = torch.load(
+            config.model_snapshot_path, map_location=device
+        )
+        model.load_state_dict(model_snapshot["model"])
 
-        if config.model_snapshot:
-            print("Loading model snapshot")
-            model_snapshot = wandb_run.use_artifact(config.model_snapshot)
-            model_snapshot_dir = model_snapshot.download()
-            model_snapshot = torch.load(
-                os.path.join(model_snapshot_dir, "model.pth"))
-            model.load_state_dict(model_snapshot["model"])
+        print("Creating reference database")
+        ref_db = build_reference_db(model, device, config)
+        print("Reference DB created")
+        with open(os.path.join(wandb.run.dir, "db.npz"), "wb") as file:
+            np.save(file, ref_db)
 
-        wandb.watch(model, criterion=loss_fn, log="all")
-        print("Configurations done. Commence model training")
-
-        artifact = wandb.Artifact("{}".format(wandb_run.name), type="model")
-        for epoch in range(1, config.epochs+1):
-            train(model, loss_fn, device, train_dataloader, optimizer, epoch)
-            if config.validate:
-                validate(model, loss_fn, device, validation_dataloader, epoch)
-            wandb.log({"epoch": epoch})
-
-            model_checkpoint_dir = os.path.join(
-                config.local_snapshots_dir, "checkpoints")
-            if not os.path.exists(model_checkpoint_dir):
-                os.makedirs(model_checkpoint_dir)
-            model_checkpoint_path = os.path.join(
-                model_checkpoint_dir, "model.pth")
-
-            torch.save({
-                "model": model.state_dict(),
-                "optimizer": optimizer.state_dict()
-            }, model_checkpoint_path)
-
-            artifact.add_file(model_checkpoint_path,
-                              "{}/{}".format("checkpoints", "epoch-{}.pth".format(epoch+1)))
-            wandb_run.log_artifact(artifact)
-
-        model_path = os.path.join(config.local_snapshots_dir, "model.pth")
-        torch.save({
-            "model": model.state_dict(),
-            "optimizer": optimizer.state_dict()
-        }, model_path)
-        artifact.add_file(model_path, "model.pth")
-        wandb_run.log_artifact(artifact)
+        print("Querying")
+        query_results = query(model, device, ref_db, config)
+        print("Completed Querying")
+        with open(os.path.join(wandb.run.dir, "query_results.npz"), "wb") as file:
+            np.save(file, query_results)
 
 
 def main():
@@ -213,10 +178,12 @@ def main():
 
     parser.add_argument("--reference_csv", action="store", required=True,
                         help="path of reference data csv")
+    parser.add_argument("--reference_dataset_dir", action="store", required=True,
+                        help="root dir of reference dataset")
     parser.add_argument("--query_csv", action="store", required=True,
                         help="path of query data csv")
-    parser.add_argument("--dataset_dir", action="store", required=True,
-                        help="root dir of dataset")
+    parser.add_argument("--query_dataset_dir", action="store", required=True,
+                        help="root dir of query dataset")
     parser.add_argument("--feature_type", action="store",
                         help="cqt/hpcp/crema", default="cqt")
     parser.add_argument("--hop_length", action="store", type=int,
@@ -233,8 +200,8 @@ def main():
     parser.add_argument("--state_dim", action="store", type=int,
                         help="state dimension", default=64)
 
-    parser.add_argument("--model_snapshot", action="store", default=None,
-                        help="snapshot of the model from wandb")
+    parser.add_argument("--model_snapshot_path", action="store",
+                        help="snapshot of the model")
 
     parser.add_argument("--time_axis", action="store", type=int,
                         help="index of time axis", default=1)
@@ -256,6 +223,11 @@ def main():
 
     parser.add_argument("--use_separate_models", type=bool, default=False,
                         help="use encoder and decoder models with separate weights")
+
+    # If the task is audio identification, consider [work_id, track_id] as a single work
+    # If the task is version identification, consider [work_id] as a single work
+    parser.add_argument("--task", action="store", default="version",
+                        help="audio/version")
 
     args = parser.parse_args()
 
