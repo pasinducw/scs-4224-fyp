@@ -279,7 +279,7 @@ def drive(config):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="RNN Parameter Trainer")
+    parser = argparse.ArgumentParser(description="Seq2Seq Parameter Trainer")
 
     parser.add_argument("--meta_csv", action="store", required=True,
                         help="path of metadata csv")
@@ -299,8 +299,6 @@ def main():
     parser.add_argument("--frames_per_sample", action="store", type=int,
                         help="frames per sample", default=100)
 
-    parser.add_argument("--device", action="store",
-                        help="cuda/cpu", default="cpu")
     parser.add_argument("--batch_size", action="store", type=int,
                         help="dataset single batch size", default=512)
     parser.add_argument("--workers", action="store", type=int,
@@ -348,6 +346,8 @@ def main():
                         help="loss multiplier")
 
     args = parser.parse_args()
+
+    args.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     if args.feature_type == 'crema':
         args.input_size = 12

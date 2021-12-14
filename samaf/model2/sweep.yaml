@@ -1,0 +1,68 @@
+program: trainer.py
+method: bayes
+metric:
+  name: validation_triplet_loss
+  goal: minimize
+parameters:
+  hop_length:
+    distribution: q_log_uniform
+    min: 0.6931471805599453 # log(2)
+    max: 4.1588830833596715 # log(64)
+    q: 1
+  frames_per_sample:
+    distribution: q_log_uniform
+    min: 4.1588830833596715 # log(64)
+    max: 6.238324625039508 # log(512)
+    q: 1
+  batch_size:
+    distribution: q_log_uniform
+    min: 3.4657359027997265 # log(32)
+    max: 6.931471805599453 # log(1024)
+    q: 1
+  learning_rate:
+    distribution: log_uniform
+    min: -9.210340371976182 # log(0.0001)
+    max: -2.3025850929940455 # log(0.1)
+  layers:
+    values: [1, 2, 3, 4]
+  triplet_loss_margin:
+    distribution: uniform
+    min: 0.1
+    max: 0.5
+  loss_alpha:
+    distribution: uniform
+    min: 0.0
+    max: 1.0
+command:
+  - python3
+  - ${program}
+  - "--meta_csv"
+  - "/home/pasinducw/Downloads/Research-Datasets/covers80/covers80_annotations_single_1.csv"
+  - "--validation_meta_csv"
+  - "/home/pasinducw/Downloads/Research-Datasets/covers80/covers80_annotations_single_2.csv"
+  - "--dataset_dir"
+  - "/home/pasinducw/Downloads/Research-Datasets/covers80/covers80_features"
+  - "--augmentations_base_dir"
+  - "/home/pasinducw/Downloads/Research-Datasets/covers80/features"
+  - "--augmentations"
+  - "noise0.01"
+  - "noise0.05"
+  - "noise0.1"
+  - "noise0.2"
+  - "pitch-2"
+  - "pitch-1"
+  - "pitch+1"
+  - "pitch+2"
+  - "speed0.95"
+  - "speed1.05"
+  - "--workers"
+  - "4"
+  - "--epochs"
+  - "3"
+  - "--dataset_cache_limit"
+  - "8192"
+  - "--wandb_project_name"
+  - "university-work-scs-4224-samaf_model2"
+  - "--validate"
+  - "True"
+  - ${args}
