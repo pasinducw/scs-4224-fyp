@@ -67,11 +67,23 @@ class PerformanceChunks(torch.utils.data.Dataset):
         # Store the number of frames of each performance in the dataset
         for row in self.dataset:
             [work_id, track_id] = row
-            feature_path = [base_dir, work_id, "%s.%s" % (track_id, 'h5')]
-            feature_path = os.path.join(*feature_path)
-            with h5py.File(feature_path) as file:
-                dimensions = file[feature_type].shape
-                row.append(dimensions[time_axis])
+
+            sequence_path = os.path.join(
+                base_dir, work_id, "%s.%s" % (track_id, 'h5'))  # original
+            seq_length = self.get_sequence_length(
+                sequence_path, feature_type, time_axis)
+
+            if include_augmentations:
+                # Go through each variation, and pick the min sequence length
+                for augmentation in augmentations:
+                    sequence_path = os.path.join(
+                        augmentations_base_dir, augmentation, work_id, "%s.%s" % (track_id, 'h5'))
+                    seq_length = min(
+                        seq_length,
+                        self.get_sequence_length(
+                            sequence_path, feature_type, time_axis)
+                    )
+            row.append(seq_length)
 
         # Compute the total sample count and store it
         self.samples = 0
@@ -79,7 +91,7 @@ class PerformanceChunks(torch.utils.data.Dataset):
             samples = (row[2] - (frames_per_sample -
                                  hop_length)) // hop_length
             # ignore 10% of samples to help account for variation in number of frames between augmentations
-            # samples = math.floor(samples * 0.9)
+            samples = math.floor(samples * 0.9)
             self.samples += samples
             row.append(samples)  # number of samples in the performance
             row.append(self.samples)  # summation array formation
@@ -113,7 +125,8 @@ class PerformanceChunks(torch.utils.data.Dataset):
         if self.include_augmentations:
             variants = [None, *self.augmentations]
 
-        results = ([], [], work_id, track_id, index)  # sequence, max_indices, work_id, track_id, index
+        # sequence, max_indices, work_id, track_id, index
+        results = ([], [], work_id, track_id, index)
 
         for variant in variants:
             frames = self.get_performance(
@@ -138,8 +151,8 @@ class PerformanceChunks(torch.utils.data.Dataset):
             results[1].append(max_indices)
 
         results = (
-            np.array(results[0]),
-            np.array(results[1]),
+            np.array(results[0], dtype=float),
+            np.array(results[1], dtype=int),
             work_id,
             track_id,
             index,
@@ -191,3 +204,8 @@ class PerformanceChunks(torch.utils.data.Dataset):
 
         self.cache.set(cache_key, data)
         return data
+
+    def get_sequence_length(self, sequence_path: list, feature_type: str, time_axis: int):
+        with h5py.File(sequence_path) as file:
+            dimensions = file[feature_type].shape
+        return dimensions[time_axis]
