@@ -1,3 +1,5 @@
+project: seq2seq_ael_tl
+entity: pasinducw
 program: trainer.py
 method: bayes
 metric:
