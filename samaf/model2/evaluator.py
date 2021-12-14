@@ -160,11 +160,12 @@ def drive(config):
         )
         model.load_state_dict(model_snapshot["model"])
 
-        print("Creating reference database")
-        ref_db = build_reference_db(model, device, config)
-        print("Reference DB created")
-        with open(os.path.join(wandb.run.dir, "db.npz"), "wb") as file:
-            np.save(file, ref_db)
+        if config.query_only == False:
+            print("Creating reference database")
+            ref_db = build_reference_db(model, device, config)
+            print("Reference DB created")
+            with open(os.path.join(wandb.run.dir, "db.npz"), "wb") as file:
+                np.save(file, ref_db)
 
         print("Querying")
         query_results = query(model, device, ref_db, config)
@@ -228,6 +229,9 @@ def main():
     # If the task is version identification, consider [work_id] as a single work
     parser.add_argument("--task", action="store", default="version",
                         help="audio/version")
+
+    parser.add_argument("--query_only", action="store", default=False,
+                        help="Set as True to only build the query DB")
 
     args = parser.parse_args()
 

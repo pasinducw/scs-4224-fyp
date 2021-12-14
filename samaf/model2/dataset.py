@@ -4,8 +4,10 @@ import torch
 import numpy as np
 import pandas as pd
 import h5py
+import math
 from cache import SimpleCache
 from utils import upper_bound
+
 
 FRAMES_PER_SAMPLE: int = 336  # number of frames per sample
 HOP_LENGTH: int = 2  # number of frames to hop, to get to next sample
@@ -20,6 +22,22 @@ CQT_PRESERVED_PEAK_COUNT: int = 1
 CACHE_LIMIT = 5000
 
 
+class Performances(torch.utils.data.Dataset):
+    def __init__(
+        self,
+        dataset_meta_csv_path: str,
+    ):
+        dataset = pd.read_csv(dataset_meta_csv_path, dtype=str)
+        self.dataset = dataset.values.tolist()
+        pass
+
+    def len(self):
+        return len(self.dataset)
+
+    def __getitem__(self, index):
+        return self.dataset(index)
+
+
 class PerformanceChunks(torch.utils.data.Dataset):
     def __init__(
             self,
@@ -32,10 +50,13 @@ class PerformanceChunks(torch.utils.data.Dataset):
             cache_limit: int = CACHE_LIMIT,
             hop_length: int = HOP_LENGTH,
             frames_per_sample: int = FRAMES_PER_SAMPLE,
+            include_augmentations: bool = False,
+            augmentations_base_dir: str = None,
+            augmentations: list = None,
     ):
 
         # Read the metadata
-        dataset = pd.read_csv(dataset_meta_csv_path)
+        dataset = pd.read_csv(dataset_meta_csv_path, dtype=str)
         if work_id and track_id:
             dataset = (dataset[dataset['work_id'] == work_id])
             dataset = (dataset[dataset['track_id'] == track_id])
@@ -57,6 +78,8 @@ class PerformanceChunks(torch.utils.data.Dataset):
         for row in self.dataset:
             samples = (row[2] - (frames_per_sample -
                                  hop_length)) // hop_length
+            # ignore 10% of samples to help account for variation in number of frames between augmentations
+            # samples = math.floor(samples * 0.9)
             self.samples += samples
             row.append(samples)  # number of samples in the performance
             row.append(self.samples)  # summation array formation
@@ -68,6 +91,10 @@ class PerformanceChunks(torch.utils.data.Dataset):
         self.hop_length = hop_length
         self.frames_per_sample = frames_per_sample
         self.cache = SimpleCache(cache_limit)
+
+        self.include_augmentations = include_augmentations
+        self.augmentations_base_dir = augmentations_base_dir
+        self.augmentations = augmentations
 
     def __len__(self):
         return self.samples
@@ -82,18 +109,52 @@ class PerformanceChunks(torch.utils.data.Dataset):
             sample_summation_count] = self.dataset[performance_index]
         sample_index = sample_count - (sample_summation_count - index)
 
-        frames = self.get_performance(work_id=work_id, track_id=track_id)
-        if self.time_axis == 1:
-            frames = frames[:, sample_index * self.hop_length: (
-                sample_index * self.hop_length + self.frames_per_sample)]
-        else:
-            frames = frames[sample_index * self.hop_length: (
-                sample_index * self.hop_length + self.frames_per_sample), :]
-            frames = frames.transpose()
+        variants = [None]
+        if self.include_augmentations:
+            variants = [None, *self.augmentations]
 
-        # Prepare the extracted frames for the classification task
-        X, max_indices = self.process_frames(np.array(frames))
-        return (X, max_indices, work_id, track_id)
+        results = ([], [], work_id, track_id, index)  # sequence, max_indices, work_id, track_id, index
+
+        for variant in variants:
+            frames = self.get_performance(
+                work_id=work_id, track_id=track_id, augmentation=variant)
+
+            # Adjust the number of frames fetched and the frame index to account for variations that shrink or lengthen the track
+            variant_frame_count = frames.shape[self.time_axis]
+            scale_factor = variant_frame_count/frame_count
+            frame_start_index = math.floor(
+                sample_index * self.hop_length * scale_factor)
+            frame_end_index = frame_start_index + self.frames_per_sample
+
+            if self.time_axis == 1:
+                frames = frames[:, frame_start_index: frame_end_index]
+            else:
+                frames = frames[frame_start_index: frame_end_index, :]
+                frames = frames.transpose()
+
+            # Prepare the extracted frames for the classification task
+            X, max_indices = self.process_frames(np.array(frames))
+            results[0].append(X)
+            results[1].append(max_indices)
+
+        results = (
+            np.array(results[0]),
+            np.array(results[1]),
+            work_id,
+            track_id,
+            index,
+        )
+
+        if self.include_augmentations == False:
+            return results[0][0], results[1][0], results[2], results[3]
+
+        return (
+            torch.from_numpy(results[0]).type(torch.float32),
+            torch.from_numpy(results[1]).type(torch.long),
+            results[2],
+            results[3],
+            results[4],
+        )
 
     def process_frames(self, frames):
         # Get frames to [sequence_size, feature_size]
@@ -108,45 +169,25 @@ class PerformanceChunks(torch.utils.data.Dataset):
         # filteredFrames = filteredFrames[:, :-CQT_TOP_DROP_BINS]
 
         # [sequence_size,feature_size]
-        X = torch.from_numpy(filteredFrames[:, :]).type(torch.float32)
+        # torch.from_numpy(filteredFrames[:, :]).type(torch.float32)
+        X = filteredFrames[:, :]
 
         return (X, maxIndices)
 
-    def get_performance(self, work_id: str, track_id: str):
-        cache_key = "%s:%s" % (work_id, track_id)
+    def get_performance(self, work_id: str, track_id: str, augmentation: str = None):
+        cache_key = "%s:%s:%s" % (
+            work_id, track_id, augmentation if augmentation != None else "original")
         cache_result = self.cache.get(cache_key)
         if cache_result is not None:
             return cache_result
 
-        performance_path = [self.base_dir, work_id, "%s.%s" % (track_id, 'h5')]
+        base_dir = os.path.join(self.augmentations_base_dir,
+                                augmentation) if augmentation != None else self.base_dir
+
+        performance_path = [base_dir, work_id, "%s.%s" % (track_id, 'h5')]
         performance_path = os.path.join(*performance_path)
         with h5py.File(performance_path) as file:
             data = np.copy(file[self.feature_type][:])
-
-
-
-        # # Change the sequence to a simple SINE wave
-        # # data -> [CQT_coefficients(84), sequence_length]
-        # bins, samples = data.shape[0], data.shape[1]
-        # freq = 50.0/samples
-
-        # steps = np.linspace(0, samples, samples, endpoint=False)
-        # wave = np.sin(2 * np.pi * freq * steps)
-        
-        # # Fitting the wave to the plot
-        # wave = (wave + 1.0) * ((bins-1) / 2.0)
-        # wave = np.floor(wave).astype(int)
-
-        # # Creating the plot
-        # plot = np.zeros((bins, samples))
-        # for (index, bin) in enumerate(wave):
-        #     plot[bin, index] = 1.0
-
-        # # Overriding data with plot
-        # data = plot
-        # # End of custom change to data
-
-
 
         self.cache.set(cache_key, data)
         return data

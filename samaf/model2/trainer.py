@@ -4,35 +4,136 @@ import torch
 import numpy as np
 import librosa.display
 
+from pytorch_metric_learning import losses, miners, distances, reducers, testers
+from pytorch_metric_learning.utils import accuracy_calculator
+
 from model import Model
 from dataset import PerformanceChunks
+from utils import combine_dimensions
 
 import argparse
 import wandb
 
 
-def train(model, loss_fn, device, dataloader, optimizer, epoch):
+def get_sequence_hash_generator_function():
+    cache = dict()
+    next_id = 1
+
+    def get_sequence_id(work_ids, track_ids, offset_indexes):
+        nonlocal next_id
+        chunk_ids = []
+        for (index, work_id) in enumerate(work_ids):
+            hash_key = "%s:%s:%d" % (
+                work_id, track_ids[index], offset_indexes[index])
+            if hash_key not in cache:
+                cache[hash_key] = next_id
+                next_id += 1
+            chunk_ids.append(cache[hash_key])
+
+        return chunk_ids
+
+    return get_sequence_id
+
+
+def get_loss_function(config):
+    alpha = config.loss_alpha
+
+    threshold_reducer_low = 0  # get from config
+    margin = config.triplet_loss_margin
+
+    autoencoder_loss = torch.nn.CrossEntropyLoss()
+
+    distance = distances.CosineSimilarity()
+    reducer = reducers.ThresholdReducer(low=threshold_reducer_low)
+    print("distance, reducer initialized")
+
+    triplet_loss = losses.TripletMarginLoss(
+        margin=margin, distance=distance, reducer=reducer)
+
+    def loss_fn(expected_indices_sequence, reconstructed_sequence, embeddings, sequence_ids, triplet_indices):
+        # expected_indices_sequence -> [batch_size * variations, sequence_length]
+        # reconstructed_sequence -> [batch_size * variations, sequence_length, feature_size]
+        # embeddings -> [batch_size * variations, hidden_size]
+        # sequence_ids -> [batch_size * variations]
+
+        feature_size = reconstructed_sequence.shape[-1]
+
+        input = reconstructed_sequence.view(-1, feature_size)
+        target = expected_indices_sequence.view(-1)
+
+        ae_loss = autoencoder_loss(input, target)
+        tplt_loss = triplet_loss(embeddings, sequence_ids, triplet_indices)
+        loss = alpha * ae_loss + (1-alpha) * tplt_loss
+        return loss, (ae_loss, tplt_loss)
+
+    return loss_fn
+
+
+def get_mining_function(config):
+    margin = config.triplet_loss_margin
+    type_of_triplets = "semihard"
+    distance = distances.CosineSimilarity()
+
+    return miners.TripletMarginMiner(
+        margin=margin, distance=distance, type_of_triplets=type_of_triplets)
+
+
+def train(model, loss_fn, sequence_id_generator_fn, mining_fn, device, dataloader, optimizer, epoch):
     model.train()
     losses = []
+    ae_losses = []
+    tplt_losses = []
 
-    for i, (sequence, sequence_indices, work_id, track_id) in enumerate(dataloader):
-        sequence, sequence_indices = sequence.to(
-            device), sequence_indices.to(device)
+    for i, (sequence, sequence_indices, work_id, track_id, offset_index) in enumerate(dataloader):
+        variations = sequence.shape[1]
+        sequence = combine_dimensions(sequence, 0, 1).to(device)
+        sequence_indices = combine_dimensions(
+            sequence_indices, 0, 1).to(device)
+
+        sequence_ids = torch.from_numpy(  # broadcast the results to all the variations
+            np.array(sequence_id_generator_fn(work_id, track_id, offset_index)).reshape(-1, 1) *
+            # [batch_size] * [number of variations]
+            np.ones((len(offset_index), variations))
+        ).view(-1).to(device)
 
         optimizer.zero_grad()
+
+        # Compute embeddings
         (embeddings, reconstructed_sequence) = model(sequence)
-        loss = 1.0 * loss_fn(sequence_indices,
-                             reconstructed_sequence, embeddings)
+
+        # Triplets
+        triplets = mining_fn(embeddings, sequence_ids)
+        anchor, positive, negative = triplets
+
+        max_index = 0
+        if anchor.shape[0] > 0:
+            max_index = np.max([np.max(anchor.numpy()), np.max(
+                positive.numpy()), np.max(negative.numpy())])
+
+        if max_index >= sequence.shape[0]:
+            print(
+                "[PREVENTED ERROR] Found index {} on the mined indices".format(max_index))
+            print("Skipping the training iteration")
+            return
+
+        loss, (ae_loss, tplt_loss) = loss_fn(sequence_indices,
+                                             reconstructed_sequence, embeddings, sequence_ids, triplets)
         loss.backward()
         optimizer.step()
 
         losses.append(loss.item())
+        ae_losses.append(ae_loss.item())
+        tplt_losses.append(tplt_loss.item())
 
         if i % 100 == 0:
             print("Epoch {} batch {}: train loss {}".format(
                 epoch, i+1, loss.item()))
 
-    wandb.log({"loss": np.mean(losses)}, commit=False)
+    wandb.log({
+        "loss": np.mean(losses),
+        "autoencoder_loss": np.mean(ae_losses),
+        "triplet_loss": np.mean(tplt_losses)
+    }, commit=False)
 
     # Log the last available sequence and reconstructed sequence
     def get_plot(sequence):
@@ -46,43 +147,55 @@ def train(model, loss_fn, device, dataloader, optimizer, epoch):
         commit=False)
 
 
-def validate(model, loss_fn, device, dataloader, epoch):
+def validate(model, loss_fn, sequence_id_generator_fn, mining_fn, device, dataloader, epoch):
+    model.train()
     losses = []
+    ae_losses = []
+    tplt_losses = []
 
     with torch.no_grad():
-        for i, (sequence, sequence_indices, work_id, track_id) in enumerate(dataloader):
-            sequence, sequence_indices = sequence.to(
-                device), sequence_indices.to(device)
+        for i, (sequence, sequence_indices, work_id, track_id, offset_index) in enumerate(dataloader):
+            variations = sequence.shape[1]
+            sequence = combine_dimensions(sequence, 0, 1).to(device)
+            sequence_indices = combine_dimensions(
+                sequence_indices, 0, 1).to(device)
+
+            sequence_ids = torch.from_numpy(  # broadcast the results to all the variations
+                np.array(sequence_id_generator_fn(work_id, track_id, offset_index)).reshape(-1, 1) *
+                # [batch_size] * [number of variations]
+                np.ones((len(offset_index), variations))
+            ).view(-1).to(device)
+
+            # Compute embeddings
             (embeddings, reconstructed_sequence) = model(sequence)
 
-            loss = 1.0 * loss_fn(sequence_indices,
-                                 reconstructed_sequence, embeddings)
+            # Triplets
+            triplets = mining_fn(embeddings, sequence_ids)
+            anchor, positive, negative = triplets
+
+            max_index = 0
+            if anchor.shape[0] > 0:
+                max_index = np.max([np.max(anchor.numpy()), np.max(
+                    positive.numpy()), np.max(negative.numpy())])
+
+            if max_index >= sequence.shape[0]:
+                print(
+                    "[PREVENTED ERROR] Found index {} on the mined indices".format(max_index))
+                print("Skipping the training iteration")
+                return
+
+            loss, (ae_loss, tplt_loss) = loss_fn(sequence_indices,
+                                                 reconstructed_sequence, embeddings, sequence_ids, triplets)
 
             losses.append(loss.item())
+            ae_losses.append(ae_loss.item())
+            tplt_losses.append(tplt_loss.item())
 
-            if i % 100 == 0:
-                print("Epoch {} batch {}: validation loss {}".format(
-                    epoch, i+1, loss.item()))
-
-    wandb.log(
-        {"validation_loss": np.mean(losses)}, commit=False)
-
-
-def get_loss_function():
-
-    autoencoder_loss = torch.nn.CrossEntropyLoss()
-
-    def loss_fn(expected_indices_sequence, reconstructed_sequence, embeddings):
-        # expected_indices_sequence -> [batch_size, sequence_length]
-        # reconstructed_sequence -> [batch_size, sequence_length, feature_size]
-        feature_size = reconstructed_sequence.shape[-1]
-
-        input = reconstructed_sequence.view(-1, feature_size)
-        target = expected_indices_sequence.view(-1)
-
-        return autoencoder_loss(input, target)
-
-    return loss_fn
+        wandb.log({
+            "validation_loss": np.mean(losses),
+            "validation_autoencoder_loss": np.mean(ae_losses),
+            "validation_triplet_loss": np.mean(tplt_losses)
+        }, commit=False)
 
 
 def drive(config):
@@ -95,7 +208,10 @@ def drive(config):
             time_axis=config.time_axis,
             hop_length=config.hop_length,
             frames_per_sample=config.frames_per_sample,
-            cache_limit=config.dataset_cache_limit
+            cache_limit=config.dataset_cache_limit,
+            include_augmentations=True,
+            augmentations_base_dir=config.augmentations_base_dir,
+            augmentations=config.augmentations,
         )
         train_dataloader = torch.utils.data.DataLoader(
             train_dataset, batch_size=config.batch_size, num_workers=config.workers, shuffle=True)
@@ -107,7 +223,10 @@ def drive(config):
             time_axis=config.time_axis,
             hop_length=config.hop_length,
             frames_per_sample=config.frames_per_sample,
-            cache_limit=config.dataset_cache_limit
+            cache_limit=config.dataset_cache_limit,
+            include_augmentations=True,
+            augmentations_base_dir=config.augmentations_base_dir,
+            augmentations=config.augmentations,
         )
         validation_dataloader = torch.utils.data.DataLoader(
             validation_dataset, batch_size=config.batch_size, num_workers=config.workers, shuffle=False)
@@ -118,20 +237,26 @@ def drive(config):
 
         optimizer = torch.optim.Adagrad(
             model.parameters(), lr=config.learning_rate)
-        loss_fn = get_loss_function()
+        chunk_id_generator_fn = get_sequence_hash_generator_function()
+
+        loss_fn = get_loss_function(config)
+        mining_fn = get_mining_function(config)
 
         if config.model_snapshot:
             print("Loading model snapshot")
-            model_snapshot = wandb_run.restore("model.pth", run_path=config.model_snapshot)
+            model_snapshot = wandb_run.restore(
+                "model.pth", run_path=config.model_snapshot)
             model.load_state_dict(model_snapshot["model"])
 
         wandb.watch(model, criterion=loss_fn, log="all")
         print("Configurations done. Commence model training")
 
         for epoch in range(1, config.epochs+1):
-            train(model, loss_fn, device, train_dataloader, optimizer, epoch)
+            train(model, loss_fn, chunk_id_generator_fn, mining_fn,
+                  device, train_dataloader, optimizer, epoch)
             if config.validate:
-                validate(model, loss_fn, device, validation_dataloader, epoch)
+                validate(model, loss_fn, chunk_id_generator_fn, mining_fn,
+                         device, validation_dataloader, epoch)
             wandb.log({"epoch": epoch})
 
             model_checkpoint_dir = os.path.join(
@@ -162,6 +287,11 @@ def main():
                         help="path of validation metadata csv")
     parser.add_argument("--dataset_dir", action="store", required=True,
                         help="root dir of dataset")
+    parser.add_argument("--augmentations_base_dir", action="store", required=True,
+                        help="base directory of augmentations")
+    parser.add_argument("--augmentations", action="store", nargs="*", required=True,
+                        help="augmentations list")
+
     parser.add_argument("--feature_type", action="store",
                         help="cqt/hpcp/crema", default="cqt")
     parser.add_argument("--hop_length", action="store", type=int,
@@ -209,6 +339,13 @@ def main():
 
     parser.add_argument("--use_separate_models", type=bool, default=False,
                         help="use encoder and decoder models with separate weights")
+
+    # Triplet loss related params
+    parser.add_argument("--triplet_loss_margin", type=float, default=0.3,
+                        help="triplet loss margin value")
+
+    parser.add_argument("--loss_alpha", type=float, default=0.6,
+                        help="loss multiplier")
 
     args = parser.parse_args()
 
