@@ -67,7 +67,7 @@ def process_audio(
 
 
 def drive(config):
-    source_tracks = pd.read_csv(config.meta_csv).values.tolist()
+    source_tracks = pd.read_csv(config.meta_csv, dtype=str).values.tolist()
     # for index in range(len(source_tracks)):
     #   process_audio(config, source_tracks, index)
 
