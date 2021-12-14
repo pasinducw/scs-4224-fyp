@@ -150,7 +150,7 @@ class PerformanceChunks(torch.utils.data.Dataset):
 
         return (
             torch.from_numpy(results[0]).type(torch.float32),
-            torch.from_numpy(results[1]).type(torch.float32),
+            torch.from_numpy(results[1]).type(torch.long),
             results[2],
             results[3],
             results[4],
