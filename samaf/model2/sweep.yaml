@@ -18,12 +18,12 @@ parameters:
     q: 1
   batch_size:
     distribution: q_log_uniform
-    min: 3.4657359027997265 # log(32)
-    max: 6.931471805599453 # log(1024)
+    min: 4.1588830833596715 # log(64)
+    max: 5.298317366548036 # log(200)
     q: 1
   learning_rate:
     distribution: log_uniform
-    min: -9.210340371976182 # log(0.0001)
+    min: -6.907755278982137 # log(0.001)
     max: -2.3025850929940455 # log(0.1)
   layers:
     values: [1, 2, 3, 4]
@@ -39,32 +39,27 @@ command:
   - python3
   - ${program}
   - "--meta_csv"
-  - "/home/pasinducw/Downloads/Research-Datasets/covers80/covers80_annotations_single_1.csv"
+  - "/mnt/data/datasets/fma/metadata/fma_small_train.csv"
   - "--validation_meta_csv"
-  - "/home/pasinducw/Downloads/Research-Datasets/covers80/covers80_annotations_single_2.csv"
+  - "/mnt/data/datasets/fma/metadata/fma_small_val.csv"
   - "--dataset_dir"
-  - "/home/pasinducw/Downloads/Research-Datasets/covers80/covers80_features"
+  - "/mnt/data/datasets/fma/features/original"
   - "--augmentations_base_dir"
-  - "/home/pasinducw/Downloads/Research-Datasets/covers80/features"
+  - "/mnt/data/datasets/fma/features"
   - "--augmentations"
-  - "noise0.01"
-  - "noise0.05"
-  - "noise0.1"
   - "noise0.2"
-  - "pitch-2"
   - "pitch-1"
   - "pitch+1"
-  - "pitch+2"
   - "speed0.95"
   - "speed1.05"
   - "--workers"
-  - "4"
+  - "16"
   - "--epochs"
-  - "3"
+  - "25"
   - "--dataset_cache_limit"
-  - "8192"
+  - "14000"
   - "--wandb_project_name"
-  - "university-work-scs-4224-samaf_model2"
+  - "seq2seq_ael_tl"
   - "--validate"
   - "True"
   - ${args}
