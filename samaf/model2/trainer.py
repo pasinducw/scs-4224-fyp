@@ -64,6 +64,12 @@ def get_loss_function(config):
 
         ae_loss = autoencoder_loss(input, target)
         tplt_loss = triplet_loss(embeddings, sequence_ids, triplet_indices)
+
+        # Standardize the loss values based on results from preliminary sweep (https://wandb.ai/pasinducw/seq2seq_ael_tl/sweeps/em3c9tu1)
+        # Calculation: https://docs.google.com/spreadsheets/d/1KOhEaTWgfBZDI9s8hUVB1extnJ9KK50G-m4LbtV6Ucc/edit?usp=sharing
+        ae_loss = (ae_loss - 3.97032104) / 0.08109961275 # Parameters calculated using training data exported from https://wandb.ai/pasinducw/seq2seq_ael_tl/sweeps/em3c9tu1
+        tplt_loss = (tplt_loss - 0.06200983243) / 0.01376640325 # Parameters calculated using training data exported from https://wandb.ai/pasinducw/seq2seq_ael_tl/sweeps/em3c9tu1
+
         loss = alpha * ae_loss + (1-alpha) * tplt_loss
         return loss, (ae_loss, tplt_loss)
 
