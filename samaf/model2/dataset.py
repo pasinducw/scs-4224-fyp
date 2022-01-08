@@ -159,7 +159,12 @@ class PerformanceChunks(torch.utils.data.Dataset):
         )
 
         if self.include_augmentations == False:
-            return results[0][0], results[1][0], results[2], results[3]
+            return (
+                torch.from_numpy(results[0][0]).type(torch.float32), 
+                results[1][0], 
+                results[2], 
+                results[3]
+            )
 
         return (
             torch.from_numpy(results[0]).type(torch.float32),

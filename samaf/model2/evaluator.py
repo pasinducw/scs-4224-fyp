@@ -18,6 +18,8 @@ def get_hashes_dict(model, dataloader, device, hash_fn):
 
     with torch.no_grad():
         for (sequence, sequence_indices, work_id, track_id) in dataloader:
+            print("Sequence shape", sequence.shape)
+            print("Work ID shape", len(sequence))
             sequence = sequence.to(device)
             embeddings = model(sequence)
 
@@ -83,7 +85,7 @@ def query(model, device, reference_db, config):
     all_matches = []
 
     # Utility function to identify a single work based on the task type
-    def get_computed_work_id(work_id, track_id): 
+    def get_computed_work_id(work_id, track_id):
         if config.task == 'version':
             return work_id
         return "{}-{}".format(work_id, track_id)
@@ -125,14 +127,16 @@ def query(model, device, reference_db, config):
                 no_match_count += 1
 
             for (matched_computed_work_id, matched_track_id, matched_hash) in matched_entries:
-                computed_matched_work_id = get_computed_work_id(matched_computed_work_id, matched_track_id)
+                computed_matched_work_id = get_computed_work_id(
+                    matched_computed_work_id, matched_track_id)
                 if computed_matched_work_id not in matches:
                     matches[computed_matched_work_id] = 0
                 matches[computed_matched_work_id] += 1
-        
+
         matches_list = []
         for matched_computed_work_id in matches.keys():
-            matches_list.append((matched_computed_work_id, matches[matched_computed_work_id]))
+            matches_list.append(
+                (matched_computed_work_id, matches[matched_computed_work_id]))
 
         dtype = [('work_id', 'S128'), ('matches', int)]
         matches_list = np.array(matches_list, dtype=dtype)
@@ -143,6 +147,40 @@ def query(model, device, reference_db, config):
         all_matches.append((computed_work_id, matches_list))
 
     return all_matches
+
+
+def calculate_mr1(results):
+    no_match_weight = 165
+    ranks = []
+    for (work_id, matches) in results:
+        result = np.argwhere(matches['work_id'] ==
+                             str.encode(work_id)).squeeze()
+        has_result = result.shape != (0,)
+        if has_result:
+            result = result + 1
+        else:
+            result = no_match_weight
+
+        ranks.append(result)
+
+    mr1 = np.mean(ranks)
+    return mr1
+
+
+def calculate_accuracy(results):
+    correct = 0
+    incorrect = 0
+    for (work_id, matches) in results:
+        result = np.argwhere(matches['work_id'] ==
+                             str.encode(work_id)).squeeze()
+        has_result = result.shape != (0,)
+        if has_result and result == 0:
+            correct += 1
+        else:
+            incorrect += 1
+
+    accuracy = correct/(correct+incorrect)
+    return accuracy
 
 
 def drive(config):
@@ -172,6 +210,14 @@ def drive(config):
         print("Completed Querying")
         with open(os.path.join(wandb.run.dir, "query_results.npz"), "wb") as file:
             np.save(file, query_results)
+
+        # Get the query results
+        results = {
+            "accuracy": calculate_accuracy(query_results),
+            "mr1": calculate_mr1(query_results),
+        }
+        wandb_run.log(results)
+        print(results)
 
 
 def main():
@@ -232,6 +278,9 @@ def main():
 
     parser.add_argument("--query_only", action="store", default=False,
                         help="Set as True to only build the query DB")
+
+    parser.add_argument("--snapshot_name", type=str,
+                        help="Wandb run path of the snapshot")
 
     args = parser.parse_args()
 

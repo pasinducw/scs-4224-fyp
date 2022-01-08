@@ -31,7 +31,7 @@ python3 evaluator.py  \
  --reference_csv ~/Downloads/Research-Datasets/covers80/covers80_annotations.csv \
  --query_csv ~/Downloads/Research-Datasets/covers80/covers80_annotations.csv \
  --reference_dataset_dir ~/Downloads/Research-Datasets/covers80/covers80_features/ \
- --query_dataset_dir ~/Downloads/Research-Datasets/covers80//features/speed1.10/ \
+ --query_dataset_dir ~/Downloads/Research-Datasets/covers80//features/speed1.05/ \
  --feature_type cqt \
  --hop_length 42 \
  --frames_per_sample 128 \
@@ -39,12 +39,12 @@ python3 evaluator.py  \
  --batch_size 512 \
  --workers 6 \
  --state_dim 128 \
- --model_snapshot_path ./snapshots/cross_entropy_exp1/model.pth \
+ --model_snapshot_path /home/pasinducw/Documents/research/university-work-scs-4224/samaf/model2/snapshots/cross_entropy_exp1/cross_entropy_exp1-e20.pth \
  --time_axis 1 \
  --input_size 84 \
  --dataset_cache_limit 100 \
  --layers 2 \
- --wandb_project_name seq2seq-covers80-eval \
- --wandb_run_name speed1.10 \
+ --wandb_project_name seq2seq-covers80-eval-1-extended-e20 \
+ --wandb_run_name speed1.05 \
  --task audio
  ```
