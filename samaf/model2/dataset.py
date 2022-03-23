@@ -108,6 +108,16 @@ class PerformanceChunks(torch.utils.data.Dataset):
         self.augmentations_base_dir = augmentations_base_dir
         self.augmentations = augmentations
 
+        # Load all the possible data into memory
+        print("Bootstrapping the cache")
+        for row in self.dataset:
+            work_id, track_id = row[0], row[1]
+            self.get_performance(work_id, track_id)
+            if include_augmentations:
+                for augmentation in augmentations:
+                    self.get_performance(work_id, track_id, augmentation)
+        print("Cache bootstrapped")
+
     def __len__(self):
         return self.samples
 

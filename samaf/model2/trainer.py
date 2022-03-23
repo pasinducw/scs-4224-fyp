@@ -3,6 +3,7 @@ import os
 import torch
 import numpy as np
 import librosa.display
+import time
 
 from pytorch_metric_learning import losses, miners, distances, reducers, testers
 from pytorch_metric_learning.utils import accuracy_calculator
@@ -63,6 +64,12 @@ def get_loss_function(config):
 
         ae_loss = autoencoder_loss(input, target)
         tplt_loss = triplet_loss(embeddings, sequence_ids, triplet_indices)
+
+        # Standardize the loss values based on results from preliminary sweep (https://wandb.ai/pasinducw/seq2seq_ael_tl/sweeps/em3c9tu1)
+        # Calculation: https://docs.google.com/spreadsheets/d/1KOhEaTWgfBZDI9s8hUVB1extnJ9KK50G-m4LbtV6Ucc/edit?usp=sharing
+        ae_loss = (ae_loss - 3.97032104) / 0.08109961275 # Parameters calculated using training data exported from https://wandb.ai/pasinducw/seq2seq_ael_tl/sweeps/em3c9tu1
+        tplt_loss = (tplt_loss - 0.06200983243) / 0.01376640325 # Parameters calculated using training data exported from https://wandb.ai/pasinducw/seq2seq_ael_tl/sweeps/em3c9tu1
+
         loss = alpha * ae_loss + (1-alpha) * tplt_loss
         return loss, (ae_loss, tplt_loss)
 
@@ -84,42 +91,77 @@ def train(model, loss_fn, sequence_id_generator_fn, mining_fn, device, dataloade
     ae_losses = []
     tplt_losses = []
 
+    times = [[], [], [], [], [], [], []]
+    tasks = [
+        "time_fetch_samples", "time_transform_samples", "time_send_through_network", 
+        "time_compute_triplets", "time_compute_loss", "time_propagate_gradients", 
+        "time_wrap_iteration"
+    ]
+
+    tick = time.time()
     for i, (sequence, sequence_indices, work_id, track_id, offset_index) in enumerate(dataloader):
+        # print("Start of mini-batch %d of epoch %d" % (i, epoch))
+        tock = time.time()
+        times[0].append(tock-tick) # fetch samples
+        # print("Elapsed %fs to fetch samples of %d" % (tock-tick, i))        
+
+        tick = time.time()
         variations = sequence.shape[1]
         sequence = combine_dimensions(sequence, 0, 1).to(device)
         sequence_indices = combine_dimensions(
             sequence_indices, 0, 1).to(device)
-
+        
         sequence_ids = torch.from_numpy(  # broadcast the results to all the variations
             np.array(sequence_id_generator_fn(work_id, track_id, offset_index)).reshape(-1, 1) *
             # [batch_size] * [number of variations]
             np.ones((len(offset_index), variations))
         ).view(-1).to(device)
+        tock = time.time()
+        times[1].append(tock-tick) # transform shapes
+        # print("Elapsed %fs to transform the shapes" % (tock-tick))
 
         optimizer.zero_grad()
 
+        tick = time.time()
         # Compute embeddings
         (embeddings, reconstructed_sequence) = model(sequence)
+        tock = time.time()
+        times[2].append(tock-tick) # send through network
+        # print("Elapsed %fs to send through network" % (tock-tick))
 
         # Triplets
+        tick = time.time()
         triplets = mining_fn(embeddings, sequence_ids)
         anchor, positive, negative = triplets
 
         max_index = 0
         if anchor.shape[0] > 0:
-            max_index = np.max([np.max(anchor.numpy()), np.max(
-                positive.numpy()), np.max(negative.numpy())])
+            max_index = torch.max(torch.tensor([torch.max(anchor), torch.max(
+                positive), torch.max(negative)], requires_grad=False))
 
         if max_index >= sequence.shape[0]:
             print(
                 "[PREVENTED ERROR] Found index {} on the mined indices".format(max_index))
             print("Skipping the training iteration")
             return
+        tock = time.time()
+        times[3].append(tock-tick) # compute triplets
+        # print("Elapsed %fs to compute triplets" % (tock-tick))
 
+        tick = time.time()
         loss, (ae_loss, tplt_loss) = loss_fn(sequence_indices,
                                              reconstructed_sequence, embeddings, sequence_ids, triplets)
+        tock = time.time()
+        times[4].append(tock-tick) # compute loss
+        # print("Elapsed %fs to compute loss" % (tock-tick))
+
+        tick = time.time()
         loss.backward()
         optimizer.step()
+        tock = time.time()
+        times[5].append(tock-tick) # propagate gradients
+        # print("Elapsed %fs to propagate the gradients" % (tock-tick))
+        tick = time.time()
 
         losses.append(loss.item())
         ae_losses.append(ae_loss.item())
@@ -128,6 +170,18 @@ def train(model, loss_fn, sequence_id_generator_fn, mining_fn, device, dataloade
         if i % 100 == 0:
             print("Epoch {} batch {}: train loss {}".format(
                 epoch, i+1, loss.item()))
+        
+        tock = time.time()
+        times[6].append(tock-tick) # wrap the process
+        # print("End of iteration. Took %fs to wrap" % (tock-tick))
+        tick = time.time()
+
+    for index in range(7):
+        mean_v = np.mean(times[index])
+        times[index] = mean_v
+        log_item = {}
+        log_item[tasks[index]] = mean_v
+        wandb.log(log_item, commit=False)
 
     wandb.log({
         "loss": np.mean(losses),
@@ -175,8 +229,8 @@ def validate(model, loss_fn, sequence_id_generator_fn, mining_fn, device, datalo
 
             max_index = 0
             if anchor.shape[0] > 0:
-                max_index = np.max([np.max(anchor.numpy()), np.max(
-                    positive.numpy()), np.max(negative.numpy())])
+                max_index = torch.max(torch.tensor([torch.max(anchor), torch.max(
+                    positive), torch.max(negative)], requires_grad=False))
 
             if max_index >= sequence.shape[0]:
                 print(
@@ -201,6 +255,8 @@ def validate(model, loss_fn, sequence_id_generator_fn, mining_fn, device, datalo
 def drive(config):
     with wandb.init(project=config.wandb_project_name, name=config.wandb_run_name,
                     job_type="train", entity="pasinducw", config=config) as wandb_run:
+        
+        print("Initializing datasets and data loaders")
         train_dataset = PerformanceChunks(
             dataset_meta_csv_path=config.meta_csv,
             base_dir=config.dataset_dir,
@@ -231,6 +287,7 @@ def drive(config):
         validation_dataloader = torch.utils.data.DataLoader(
             validation_dataset, batch_size=config.batch_size, num_workers=config.workers, shuffle=False)
 
+        print("Initializing neural network and optimizers")
         device = torch.device(config.device)
         model = Model(input_size=config.input_size, share_weights=not config.use_separate_models,
                       embedding_size=config.state_dim).to(device)
@@ -249,8 +306,8 @@ def drive(config):
             model.load_state_dict(model_snapshot["model"])
 
         wandb.watch(model, criterion=loss_fn, log="all")
-        print("Configurations done. Commence model training")
 
+        print("Initialization done. Commence model training")
         for epoch in range(1, config.epochs+1):
             train(model, loss_fn, chunk_id_generator_fn, mining_fn,
                   device, train_dataloader, optimizer, epoch)

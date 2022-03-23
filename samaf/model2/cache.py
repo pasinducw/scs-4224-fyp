@@ -1,10 +1,11 @@
 class SimpleCache():
-    cache = dict()
-    keys = []
-    entries_count = 0
 
-    def __init__(self, max_entries: int = 1):
+    def __init__(self, max_entries: int = 1):        
         self.max_entries = max_entries
+    
+        self.cache = dict()
+        self.keys = []
+        self.entries_count = 0
 
     def get(self, key):
         if key in self.cache:
@@ -20,3 +21,4 @@ class SimpleCache():
         self.cache[key] = value
         self.keys.append(key)
         self.entries_count += 1
+
