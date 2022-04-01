@@ -2,6 +2,7 @@ import copy
 import math
 import os
 from faiss import knn
+from parso import parse
 from pytorch_metric_learning.utils import accuracy_calculator
 
 import torch
@@ -22,7 +23,6 @@ import argparse
 import wandb
 
 from pytorch_metric_learning import losses, miners, distances, reducers, testers
-from pytorch_metric_learning.utils.accuracy_calculator import AccuracyCalculator
 from pytorch_metric_learning.utils import accuracy_calculator
 
 class CustomAccuracyCalculator(accuracy_calculator.AccuracyCalculator):
@@ -36,17 +36,21 @@ class CustomAccuracyCalculator(accuracy_calculator.AccuracyCalculator):
             self.avg_of_avgs,
             self.label_comparison_fn)
 
+    def calculate_mr1(self, knn_labels, query_labels, **kwargs):
+        ranks = 0
+        for (index, labels) in enumerate(knn_labels):
+            query = query_labels[index]
+            rank = (labels==query).nonzero(as_tuple=True)[0][0]
+            ranks += rank
+
+        mr1 = ranks / knn_labels.shape[0] + 1
+        return mr1.item()
+
     def requires_knn(self):
-        return super().requires_knn() + ["precision_at_10"] 
+        return super().requires_knn() + ["precision_at_10", "mr1"] 
 
 
-def calculate_accuracy(predicted, expected):
-    maximumIndices = np.argmax(predicted, axis=1)
-    correct = 0.0
-    for (step, index) in enumerate(maximumIndices):
-        if expected[step] == index:
-            correct += 1.0
-    return (correct / (predicted.shape[0]))
+
 
 
 def plot_progress(train: list, validation: list, progress_type: str, epoch: int, save_path: str):
@@ -72,7 +76,7 @@ def train(model, loss_func, mining_func, device, train_loader, optimizer, epoch)
         embeddings = model(data)
         indices_tuple = mining_func(embeddings, labels)
         anchor, positive, negative = indices_tuple
-
+        
         max_index = 0
         if anchor.shape[0] > 0:
             max_index = np.max([np.max(anchor.numpy()), np.max(
@@ -115,30 +119,30 @@ def test(reference_set, query_set, model, accuracy_calculator, epoch):
     wandb.log(accuracies, commit=False)
 
 
-def alternative():
-    wandb.init(project="network2", entity="pasinducw")
+def alternative(config):
+    wandb.init(project=config.wandb_project_name, name=config.wandb_run_name, entity="pasinducw", config=config)
 
-    device = torch.device('cpu')
-    batch_size = 512
-    input_size = 49968
-    output_size = 1024
-    num_epochs = 4096
-    learning_rate = 0.02
+    device = config.device
+    batch_size = config.batch_size
+    input_size = config.input_size
+    output_size = config.output_size
+    num_epochs = config.num_epochs
+    learning_rate = config.learning_rate
     threshold_reducer_low = 0
     margin = 0.3
     type_of_triplets = "semihard"
 
     print("Initializing dataset")
     mapper = ClassMapper()
-    train_dataset = PerformanceEmbeddings(dataset_meta_csv_path="/home/pasinducw/Downloads/Research-Datasets/covers80/old/embeddings/metadata.train.csv",
-                                          base_dir="/home/pasinducw/Downloads/Research-Datasets/covers80/old/embeddings", class_mapper=mapper)
-    query_dataset = PerformanceEmbeddings(dataset_meta_csv_path="/home/pasinducw/Downloads/Research-Datasets/covers80/old/embeddings/metadata.query.csv",
-                                          base_dir="/home/pasinducw/Downloads/Research-Datasets/covers80/old/embeddings", class_mapper=mapper, mean=train_dataset.mean, norm=train_dataset.norm)
-    original_dataset = PerformanceEmbeddings(dataset_meta_csv_path="/home/pasinducw/Downloads/Research-Datasets/covers80/old/embeddings/metadata.original.csv",
-                                             base_dir="/home/pasinducw/Downloads/Research-Datasets/covers80/old/embeddings", class_mapper=mapper, mean=train_dataset.mean, norm=train_dataset.norm)
+    train_dataset = PerformanceEmbeddings(dataset_meta_csv_path=config.train_meta_csv,
+                                          base_dir=config.dataset_dir, class_mapper=mapper)
+    query_dataset = PerformanceEmbeddings(dataset_meta_csv_path=config.query_meta_csv,
+                                          base_dir=config.dataset_dir, class_mapper=mapper, mean=train_dataset.mean, norm=train_dataset.norm)
+    original_dataset = PerformanceEmbeddings(dataset_meta_csv_path=config.original_meta_config,
+                                             base_dir=config.dataset_dir, class_mapper=mapper, mean=train_dataset.mean, norm=train_dataset.norm)
     print("Dataset initialized")
     train_loader = DataLoader(
-        train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+        train_dataset, batch_size=batch_size, shuffle=True, num_workers=1)
     print("Data loaders initialized")
 
     model = Model(input_size=input_size, output_size=output_size).to(device)
@@ -169,5 +173,36 @@ def alternative():
         wandb.log({"epoch": epoch})
 
 
+def main():
+    parser = argparse.ArgumentParser(description="Seq2Seq Parameter Trainer")
+    parser.add_argument("--batch_size", action="store", type=int,
+                        help="dataset single batch size", default=512)
+    parser.add_argument("--input_size", action="store", type=int,
+                        help="dataset single batch size", default=49968)
+    parser.add_argument("--output_size", action="store", type=int,
+                        help="dataset single batch size", default=1024)
+    parser.add_argument("--num_epochs", action="store", type=int,
+                        help="dataset single batch size", default=1024)
+    parser.add_argument("--learning_rate", action="store", type=float,
+                        help="learning rate", default=1e-2)
+
+    parser.add_argument("--train_meta_csv", action="store", required=True,
+                        help="path of train metadata csv")
+    parser.add_argument("--query_meta_csv", action="store", required=True,
+                        help="path of validation query metadata csv")
+    parser.add_argument("--original_meta_csv", action="store", required=True,
+                        help="path of all metadata csv")
+    parser.add_argument("--dataset_dir", action="store", required=True,
+                        help="root of the dataset")
+    
+    
+
+    args = parser.parse_args()
+    args.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    print("Arguments", args)
+    alternative(args)
+
+
 if __name__ == "__main__":
-    alternative()
+    main()

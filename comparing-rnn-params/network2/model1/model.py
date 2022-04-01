@@ -9,9 +9,7 @@ class Model(torch.nn.Module):
             torch.nn.Linear(in_features=input_size, out_features=output_size),
             torch.nn.ReLU(),
             torch.nn.Linear(in_features=output_size, out_features=output_size),
-            torch.nn.ReLU(),
-            torch.nn.Linear(in_features=output_size, out_features=output_size),
-            torch.nn.ReLU(),
+            torch.nn.Sigmoid(),
         )
 
     def forward(self, X):
