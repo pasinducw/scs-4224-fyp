@@ -30,7 +30,7 @@ class CustomAccuracyCalculator(accuracy_calculator.AccuracyCalculator):
         if knn_labels is None:
             return 0
         return accuracy_calculator.precision_at_k(
-            knn_labels, 
+            knn_labels[:,1:], 
             query_labels[:, None], 
             10,
             self.avg_of_avgs,
@@ -38,7 +38,7 @@ class CustomAccuracyCalculator(accuracy_calculator.AccuracyCalculator):
 
     def calculate_mr1(self, knn_labels, query_labels, **kwargs):
         ranks = 0
-        for (index, labels) in enumerate(knn_labels):
+        for (index, labels) in enumerate(knn_labels[:,1:]):
             query = query_labels[index]
             rank = (labels==query).nonzero(as_tuple=True)[0][0]
             ranks += rank
@@ -114,7 +114,7 @@ def test(reference_set, query_set, model, accuracy_calculator, epoch):
     accuracies = accuracy_calculator.get_accuracy(
         query_embeddings, reference_embeddings, query_labels, reference_labels, False)
     print(
-        "Test set accuracy (Precision@1) = {}".format(accuracies["precision_at_1"]))
+        "Test set accuracy (Precision@10) = {}, (MR1) = {}".format(accuracies["precision_at_10"], accuracies['mr1']))
 
     wandb.log(accuracies, commit=False)
 
@@ -138,7 +138,7 @@ def alternative(config):
                                           base_dir=config.dataset_dir, class_mapper=mapper)
     query_dataset = PerformanceEmbeddings(dataset_meta_csv_path=config.query_meta_csv,
                                           base_dir=config.dataset_dir, class_mapper=mapper, mean=train_dataset.mean, norm=train_dataset.norm)
-    original_dataset = PerformanceEmbeddings(dataset_meta_csv_path=config.original_meta_config,
+    original_dataset = PerformanceEmbeddings(dataset_meta_csv_path=config.original_meta_csv,
                                              base_dir=config.dataset_dir, class_mapper=mapper, mean=train_dataset.mean, norm=train_dataset.norm)
     print("Dataset initialized")
     train_loader = DataLoader(
@@ -194,7 +194,12 @@ def main():
                         help="path of all metadata csv")
     parser.add_argument("--dataset_dir", action="store", required=True,
                         help="root of the dataset")
-    
+
+    parser.add_argument("--wandb_project_name", action="store", required=True,
+                        help="wanDB project name")
+
+    parser.add_argument("--wandb_run_name", action="store", required=False,
+                        help="wanDB run name")
     
 
     args = parser.parse_args()
